@@ -3,6 +3,13 @@ import pygame
 import pygame.display as display
 pygame.init()
 
+"""
+For this project, the <BUTTONS> dictionary will contain all the buttons and their properties.
+Each button entry will be stored as such:
+
+BUTTON_NAME : [BUTTON_OBJECT, BUTTON_COORDINATES]
+"""
+BUTTONS = {}
 
 #------------Window settings------------# 
 
@@ -25,50 +32,74 @@ Blue = (0, 0, 255)
 """
 
 # Set the font size and type for buttons
-BUTTON_FONT_SIZE = 36
-BUTTON_FONT = pygame.font.SysFont(None, BUTTON_FONT_SIZE)
-
-# PROTOTYPE CODE
-EXIT_BUTTON_TEXT = "Quit Game"  # Store the text
-EXIT_BUTTON = BUTTON_FONT.render(EXIT_BUTTON_TEXT, True, (255, 255, 255))  # Render the text
-EXIT_BUTTON_WIDTH = EXIT_BUTTON.get_width()  # Get the width of the text
-EXIT_BUTTON_HEIGHT = EXIT_BUTTON.get_width()  # Get the height of the text
-EXIT_BUTTON_COORDS = ((WIDTH - EXIT_BUTTON_WIDTH)/2, HEIGHT/2)  # Position at the middle of the window
-
+FREE_COMIC_SANS = pygame.font.SysFont(None, 36)
 
 #---------------Functions---------------# 
 
-def check_coords(coordinates: (int, int)) -> bool:
+def create_button(name: str, text: str, font: pygame.font, color: (int, int, int), button_coordinates: (int, int), anti_aliasing = True):
     """
-    PROTOTYPE VERSION OF THE FUNCTION.
-    This function checks whether the given coordinates, 
-    <coordinates>, is inside of the exit button.
+    Given all the parameters required to initialize a button, render a <pygame.font> object.
+    Additionally, forward the object and its coordinates to the global dictionary <BUTTONS>, 
+    which stores all the buttons on the game window.
+    The <anti-alasing> parameter determines the smoothness of the font, so it is defaulted to True
+    for maximum smoothing.
     """
-    global WIDTH, HEIGHT, EXIT_BUTTON_WIDTH, EXIT_BUTTON_HEIGHT, i
+    global BUTTONS
+
+    button_object = font.render(text, anti_aliasing, color)
+    if name not in BUTTONS:
+        BUTTONS.setdefault(name, [button_object, button_coordinates])
+    else:
+        BUTTONS[name] = [button_object, button_coordinates]
+
+
+def check_button_coords(coordinates: (int, int), button: pygame.font, button_coordinates: (int, int)) -> bool:
+    """
+    This function checks whether the given coordinates, <coordinates>, are inside of a button.
+    """
+    global WIDTH, HEIGHT 
+    
+    BUTTON_WIDTH = button.get_width()
+    BUTTON_HEIGHT = button.get_height()
     
     # Checks if the x-coordinates match
-    if (WIDTH - EXIT_BUTTON_WIDTH)/2 <= coordinates[0] <= (WIDTH - EXIT_BUTTON_WIDTH)/2 + EXIT_BUTTON_WIDTH:
+    if button_coordinates[0] <= coordinates[0] <= button_coordinates[0] + BUTTON_WIDTH:
+        
         # Checks if the y-coordinates match
-        if HEIGHT/2 <= coordinates[1] <= (HEIGHT + EXIT_BUTTON_HEIGHT)/2:
+        if button_coordinates[1] <= coordinates[1] <= button_coordinates[1] + BUTTON_HEIGHT:
             return True  
+    
     return False
 
 
 #---------------Game Loop---------------# 
 
+# Important flags and accumulators
+clicks = 0
 running = True
+
+# Create buttons
+create_button("main", "Click Me!", FREE_COMIC_SANS, (255, 0, 0), ((WIDTH - 108)/2, HEIGHT/2))
+create_button("counter", f"Clicks: {clicks}", FREE_COMIC_SANS, (255, 0, 0), (5, 5))
+
+# Actual Game Loop
 while running:
-    
+
     for event in pygame.event.get():
 
         # Closing the window ends the game
         if event.type == pygame.QUIT:
             running = False
         
-        # Exit game if the exit button is clicked - PROTOTYPE CODE
+        # Increment counter if the main button is clicked
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if check_coords(mouse_pos):
-                running = False
+            if check_button_coords(mouse_pos, BUTTONS["main"][0], BUTTONS["main"][1]):
+                
+                clicks += 1
+
+                # Re-render the counter button
+                create_button("counter", f"Clicks: {clicks}", FREE_COMIC_SANS, (255, 0, 0), (5, 5))
+                
     
     # Track the (x, y) coordinates of the mouse
     # relative to the game window
@@ -76,7 +107,9 @@ while running:
 
     # Screen Updates:
 
-    # Renders the exit button onto the game window - PROOTYPE CODE
-    WIN.blit(EXIT_BUTTON, EXIT_BUTTON_COORDS)
+    # Renders all buttons onto the game window
+    WIN.fill((0, 0, 0))  # Fill the screen with the background color before rendering
+    for button in BUTTONS:
+        WIN.blit(BUTTONS[button][0], BUTTONS[button][1])
     
     display.update()
