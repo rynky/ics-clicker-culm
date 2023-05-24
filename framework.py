@@ -22,11 +22,6 @@ damage = 1
 health = 10
 defence = 0
 equipped_weapon = None
-tutorial_bosses = [
-    {"name": "Trainer", "hp": 5, "dmg": 0},
-    {"name": "Raiyan", "hp": 4, "dmg": 2},
-    {"name": "Raymond", "hp": 10, "dmg": 1}
-         ]
 weapons = [
     {"name": "Slipper", "cost": 5, "damage": 2},
     {"name": "Belt", "cost": 10, "damage": 3},
@@ -47,6 +42,11 @@ campaign_events = [
     {}
 ]
 def tutorial():
+    tutorial_bosses = [
+    {"name": "Trainer", "hp": 5, "dmg": 0},
+    {"name": "Raiyan", "hp": 4, "dmg": 2},
+    {"name": "Raymond", "hp": 10, "dmg": 1}
+         ]
     skip = input("Your goal is to survive and kill the final boss in this game! ")
     skip = input("However, there are many foes between you and the boss! ")
     skip = input("Try to beat these weak opponents first! ")
@@ -59,35 +59,38 @@ def tutorial():
         
 def battle(boss_stats, dmg, hp, wave):
     global gold, dead
+
+    boss_hp = boss_stats["hp"]
+    boss_dmg = boss_stats["dmg"]
     
     print(f"Wave: {wave}")
     print(f"You are about to fight {boss_stats['name']}!")
     print(f"""{boss_stats['name']} statistics:
-Health: {boss_stats["hp"]} 
-Damage: {boss_stats["dmg"]}""")
+Health: {boss_hp} 
+Damage: {boss_dmg}""")
     ready = input("Press any key to start: ")
     print("--------------------------------------------------")
     
-    while hp > 0 and boss_stats['hp'] > 0:
+    while hp > 0 and boss_hp > 0:
         print()
         if equipped_weapon != None:
             damage_c = dmg * equipped_weapon["damage"]
-            boss_stats["hp"] = round((boss_stats["hp"] - dmg_c), 2)
+            boss_hp = round((boss_hp - dmg_c), 2)
         else:
-            boss_stats["hp"] = round((boss_stats["hp"] - dmg), 2)
+            boss_hp = round((boss_hp - dmg), 2)
             
-        hp = round(hp - (boss_stats["dmg"] - defence), 2)
+        hp = round(hp - (boss_dmg - defence), 2)
         
-        if boss_stats["hp"] < 0:
-            boss_stats["hp"] = 0
+        if boss_hp < 0:
+            boss_hp = 0
         if hp < 0:
             hp = 0
         
-        print(f"""{boss_stats['name']}'s Health: {boss_stats["hp"]} 
+        print(f"""{boss_stats['name']}'s Health: {boss_hp} 
 Your Health: {hp}
         """)
 
-    if hp == 0 and boss_stats["hp"] == 0:
+    if hp == 0 and boss_hp == 0:
         print(f"You and the enemy simultaneously collapsed. You got away but couldn't safely pick up the gold.")
         
     elif hp > 0:
@@ -188,7 +191,6 @@ def preperation():
     skip = False
     if dead == True:
         print("Good luck next time!")
-        reset()
     else:
         print("You set up camp again after surviving another boss encounter. Take time to rest and prepare for the next one.")
         while skip == False:
@@ -242,31 +244,29 @@ def progress(old_enemy: dict):
     return new_enemy
 
 def main():
+    global dead
     close = False
     print("Welcome to GAME NAME!")
     run_tutorial = input("Do you want a tutorial? [y/n] ")
     if run_tutorial == "y":
         tutorial()
         
-    enemy_base = {"name": "Knight", "hp": 5, "dmg": 1}
-    global enemy
+    enemy = {"name": "Knight", "hp": 5, "dmg": 1}
     while close == False:
         reset()
-        for wave in range(1,26): 
-            if dead == True:
-                break
-            print(enemy_base)
-            enemy_base = progress(enemy_base)
-            enemy = enemy_base
+        while dead == False: 
+            wave = 0
+            wave += 1
+            enemy = progress(enemy)
             
             battle(enemy, damage, health, wave)
-            print(enemy)
-            print(enemy_base)
             preperation()
+            
         stop = input("Would you like to play again? [y/n] ")
         if stop != "y":
             close = True
-            
+
+    print("See you next time!")        
         
 
 main()
