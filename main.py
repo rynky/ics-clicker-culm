@@ -13,7 +13,7 @@ BUTTONS = {}
 
 #------------Window settings------------# 
 
-WIN = display.set_mode((1280, 720))  # Window Size
+WIN = display.set_mode((1080, 720))  # Window Size
 HEIGHT = WIN.get_height()
 WIDTH = WIN.get_width()
 display.set_caption("ICS3U - Raiyan and Raymond")
@@ -31,12 +31,15 @@ Green = (0, 255, 0)
 Blue = (0, 0, 255)
 """
 
-# Set the font size and type for buttons
-FREE_COMIC_SANS = pygame.font.SysFont(None, 36)
-
 #---------------Functions---------------# 
 
-def create_button(name: str, text: str, font: pygame.font, color: (int, int, int), button_coordinates: (int, int), anti_aliasing = True):
+def create_button(name: str, 
+                  text: str, 
+                  font_name: str, 
+                  font_size: int, 
+                  color: (int, int, int), 
+                  button_coordinates: (int, int), 
+                  anti_aliasing = True):
     """
     Given all the parameters required to initialize a button, render a <pygame.font> object.
     Additionally, forward the object and its coordinates to the global dictionary <BUTTONS>, 
@@ -46,7 +49,7 @@ def create_button(name: str, text: str, font: pygame.font, color: (int, int, int
     """
     global BUTTONS
 
-    button_object = font.render(text, anti_aliasing, color)
+    button_object = pygame.font.SysFont(font_name, font_size).render(text, anti_aliasing, color)
     if name not in BUTTONS:
         BUTTONS.setdefault(name, [button_object, button_coordinates])
     else:
@@ -79,8 +82,11 @@ clicks = 0
 running = True
 
 # Create buttons
-create_button("main", "Click Me!", FREE_COMIC_SANS, (255, 0, 0), ((WIDTH - 108)/2, HEIGHT/2))
-create_button("counter", f"Clicks: {clicks}", FREE_COMIC_SANS, (255, 0, 0), (5, 5))
+create_button("main", "Click Me!", None, 96, (255, 255, 255), ((WIDTH - 158)/2, HEIGHT/2))  # Main button
+create_button("counter", f"Clicks: {clicks}", None, 48, (0, 255, 0), (5, 5))  # Counter
+create_button("upgrade", "UPGRADE", None, 48, (255, 255, 0), ((WIDTH - 984)/2, (HEIGHT+400)/2))
+create_button("fight", "FIGHT", None, 48, (255, 255, 0), ((WIDTH - 108)/2, (HEIGHT+400)/2))
+create_button("shop", "SHOP", None, 48, (255, 255, 0), (WIDTH-196, (HEIGHT+400)/2))
 
 # Actual Game Loop
 while running:
@@ -98,7 +104,7 @@ while running:
                 clicks += 1
 
                 # Re-render the counter button
-                create_button("counter", f"Clicks: {clicks}", FREE_COMIC_SANS, (255, 0, 0), (5, 5))
+                create_button("counter", f"Clicks: {clicks}", None, 48, (0, 255, 0), (5, 5))  # Counter
                 
     
     # Track the (x, y) coordinates of the mouse
