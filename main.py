@@ -4,19 +4,25 @@ import pygame.display as display
 pygame.init()
 
 """
-For this project, the <BUTTONS> dictionary will contain all the buttons and their properties.
+For this project, the <BUTTONS> dictionary will contain all the buttons and their icons.
 Each button entry will be stored as such:
 
 BUTTON_NAME : [BUTTON_OBJECT, BUTTON_COORDINATES]
+
+Similarly, all images will be stored in various image dictionaries, for each screen.
+
+IMAGE_NAME : [IMAGE_OBJECT, IMAGE_COORDINATES]
 """
-BUTTONS = {}
+MAIN_MENU_TEXT = {}
+MAIN_MENU_IMAGES = {}
+
 
 #------------Window settings------------# 
 
 WIN = display.set_mode((1080, 720))  # Window Size
 HEIGHT = WIN.get_height()
 WIDTH = WIN.get_width()
-display.set_caption("ICS3U - Raiyan and Raymond")
+display.set_caption("Medieval Munchies")
 display.flip()  # Screen Update
 
 
@@ -33,27 +39,63 @@ Blue = (0, 0, 255)
 
 #---------------Functions---------------# 
 
-def create_button(name: str, 
-                  text: str, 
-                  font_name: str, 
-                  font_size: int, 
-                  color: (int, int, int), 
-                  button_coordinates: (int, int), 
-                  anti_aliasing = True):
+def create_text(name: str,
+                screen: dict,
+                text: str, 
+                font_name: str, 
+                font_size: int, 
+                color: (int, int, int), 
+                text_coordinates: (int, int), 
+                anti_aliasing = True):
     """
-    Given all the parameters required to initialize a button, render a <pygame.font> object.
-    Additionally, forward the object and its coordinates to the global dictionary <BUTTONS>, 
-    which stores all the buttons on the game window.
-    The <anti-alasing> parameter determines the smoothness of the font, so it is defaulted to True
+    Given all the parameters required to initialize text, render a <pygame.font> object.
+    Additionally, forward the object and its coordinates to the dictionary <screen>, 
+    which stores all the text on the specified game window.
+    
+    The <anti-aliasing> parameter determines the smoothness of the font, so it is defaulted to True
     for maximum smoothing.
     """
-    global BUTTONS
 
-    button_object = pygame.font.SysFont(font_name, font_size).render(text, anti_aliasing, color)
-    if name not in BUTTONS:
-        BUTTONS.setdefault(name, [button_object, button_coordinates])
+    text_object = pygame.font.SysFont(font_name, font_size).render(text, anti_aliasing, color)
+    if name not in screen:
+        screen.setdefault(name, [text_object, text_coordinates])
     else:
-        BUTTONS[name] = [button_object, button_coordinates]
+        screen[name] = [text_object, text_coordinates]
+    
+
+def create_image(name: str, 
+                 screen: dict, 
+                 image_path: str, 
+                 image_coordinates: (int, int), 
+                 transparent: bool = False, 
+                 scaling = None):
+    """
+    Given the name of the image <name>, PATH of the image <image_path> and coordinates <image_coordinates>,
+    create an image object, and append its name, the object itself, and the coordinates to the dictionary <screen>.
+
+    Additionally, the <transparent> parameter allows the image to be drawn with a transparent background. The <scaling> parameter
+    takes a list argument, [x_factor, y_factor], to scale the image. x_factor scales the width, and y_factor scales the height.
+    """
+    
+    # Load the image
+    image_object = pygame.image.load(image_path)
+
+    # Convert to transparent, if applicable
+    if transparent == True:
+        image_object = image_object.convert_alpha()
+    else:
+        image_object = image_object.convert()
+    
+    # Scale the image, if applicable
+    if not scaling == None:
+        image_object = pygame.transform.scale(image_object, (scaling[0], scaling[1]))
+
+    # Add the image to the dictionary
+    if name not in screen:
+        screen.setdefault(name, [image_object, image_coordinates])
+    else:
+        screen[name] = [image_object, image_coordinates]
+    
 
 
 def check_button_coords(coordinates: (int, int), button: pygame.font, button_coordinates: (int, int)) -> bool:
@@ -75,47 +117,60 @@ def check_button_coords(coordinates: (int, int), button: pygame.font, button_coo
     return False
 
 
+def main_menu():
+    """
+    Display the main menu in its entirety with all its text and images.
+    """
+
+    create_text("title", MAIN_MENU_TEXT, "Medieval Munchies", "Times New Roman", 64, (0, 0, 0), (300, 0))
+
+    create_image("player", MAIN_MENU_IMAGES, "Images\chef-character.png", (-75, 45), transparent=True, scaling=[600, 600])
+
+    create_text("upgrade", MAIN_MENU_TEXT, "UPGRADE", "Times New Roman", 48, (219, 172, 52), ((WIDTH - 984)/2, HEIGHT/2 + 225))
+    create_image("upgrade", MAIN_MENU_IMAGES, "Images\\anvil.png", (WIDTH - 800, HEIGHT/2 + 200), transparent=True, scaling=[120, 120])
+    
+    create_text("fight", MAIN_MENU_TEXT, "FIGHT", "Times New Roman", 48, (255, 0, 0), ((WIDTH - 158)/2, HEIGHT/2 + 225))
+    create_image("fight", MAIN_MENU_IMAGES, "Images\carrot-sword.png", (WIDTH/2 + 65, HEIGHT/2 + 212.5), transparent=True, scaling=[80, 80])
+
+    create_text("shop", MAIN_MENU_TEXT, "SHOP", "Times New Roman", 48, (17, 140, 79), (WIDTH - 325, HEIGHT/2 + 225))
+    create_image("shop", MAIN_MENU_IMAGES, "Images\shopping-cart.png", (WIDTH - 180, HEIGHT/2 + 212.5), transparent=True, scaling=[80, 80])
+
+
+
 #---------------Game Loop---------------# 
 
-# Important flags and accumulators
-clicks = 0
-running = True
 
-# Create buttons
-create_button("main", "Click Me!", None, 96, (255, 255, 255), ((WIDTH - 158)/2, HEIGHT/2))  # Main button
-create_button("counter", f"Clicks: {clicks}", None, 48, (0, 255, 0), (5, 5))  # Counter
-create_button("upgrade", "UPGRADE", None, 48, (255, 255, 0), ((WIDTH - 984)/2, (HEIGHT+400)/2))
-create_button("fight", "FIGHT", None, 48, (255, 255, 0), ((WIDTH - 108)/2, (HEIGHT+400)/2))
-create_button("shop", "SHOP", None, 48, (255, 255, 0), (WIDTH-196, (HEIGHT+400)/2))
-
-# Actual Game Loop
-while running:
-
-    for event in pygame.event.get():
-
-        # Closing the window ends the game
-        if event.type == pygame.QUIT:
-            running = False
+def main():
         
-        # Increment counter if the main button is clicked
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if check_button_coords(mouse_pos, BUTTONS["main"][0], BUTTONS["main"][1]):
-                
-                clicks += 1
+    # Important flags and accumulators
+    clicks = 0
+    running = True
 
-                # Re-render the counter button
-                create_button("counter", f"Clicks: {clicks}", None, 48, (0, 255, 0), (5, 5))  # Counter
-                
-    
-    # Track the (x, y) coordinates of the mouse
-    # relative to the game window
-    mouse_pos = pygame.mouse.get_pos()
+    # User Interface
+    main_menu()
 
-    # Screen Updates:
+    # Actual Game Loop
+    while running:
 
-    # Renders all buttons onto the game window
-    WIN.fill((0, 0, 0))  # Fill the screen with the background color before rendering
-    for button in BUTTONS:
-        WIN.blit(BUTTONS[button][0], BUTTONS[button][1])
-    
-    display.update()
+        for event in pygame.event.get():
+
+            # Closing the window ends the game
+            if event.type == pygame.QUIT:
+                running = False
+        
+        # Track the (x, y) coordinates of the mouse
+        # relative to the game window
+        mouse_pos = pygame.mouse.get_pos()
+
+        # Screen Updates:
+
+        # Renders all buttons onto the game window
+        WIN.fill((255, 255, 228))  # Fill the screen with the background color before rendering
+        for text in MAIN_MENU_TEXT:
+            WIN.blit(MAIN_MENU_TEXT[text][0], MAIN_MENU_TEXT[text][1])
+        for image in MAIN_MENU_IMAGES:
+            WIN.blit(MAIN_MENU_IMAGES[image][0], MAIN_MENU_IMAGES[image][1])
+        
+        display.update()
+
+main()
