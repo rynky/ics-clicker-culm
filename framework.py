@@ -24,6 +24,7 @@ damage = 1
 health = 10
 defence = 0
 equipped_weapon = None
+wave = 0
 weapons = [
     {"name": "Slipper", "cost": 5, "damage": 2},
     {"name": "Belt", "cost": 10, "damage": 3},
@@ -57,9 +58,12 @@ def tutorial():
          ]
 
     # Giving the player information
-    skip = input("Your goal is to survive and kill the final boss in this game! ")
-    skip = input("However, there are many foes between you and the boss! ")
-    skip = input("Try to beat these weak opponents first! ")
+    print("Your goal is to survive and kill the final boss in this game! ")
+    print((input("Press enter to continue... "))) 
+    print("However, there are many foes between you and the boss! ")
+    print((input("Press enter to continue... ")))
+    print("Try to beat these weak opponents first! ")
+    print((input("Press enter to continue... ")))
     print()
 
     # Runs through three cycles of battling and preparing
@@ -112,7 +116,8 @@ Damage: {boss_dmg}""")
         print(f"""{boss_stats['name']}'s Health: {boss_hp} 
 Your Health: {hp}
         """)
-
+        
+    print("--------------------------------------------------")
 
     # Checks the result of the battle and rewards the player accordingly
     if hp == 0 and boss_hp == 0:
@@ -257,12 +262,13 @@ def reset():
     A function that resets the primary game variables.
     """
     
-    global dead, gold, damage, health, defence, weapons,  equipped_weapon, campaign_bosses, campaign_events
+    global dead, gold, damage, health, defence, weapons,  equipped_weapon, campaign_bosses, campaign_events, wave
     dead = False
     gold = 0
     damage = 1
     health = 10
     defence = 0
+    wave = 0
     weapons = [
         {"name": "Slipper", "cost": 5, "damage": 2},
         {"name": "Belt", "cost": 10, "damage": 3},
@@ -297,7 +303,7 @@ def progress(old_enemy: dict) -> dict:
     return new_enemy
 
 def main():
-    global dead
+    global dead, wave
     close = False
     print("Welcome to GAME NAME!")
     run_tutorial = input("Do you want a tutorial? [y/n] ")
@@ -308,7 +314,6 @@ def main():
         enemy = {"name": "Knight", "hp": 5, "dmg": 1}
         reset()
         while dead == False: 
-            wave = 0
             wave += 1
             enemy = progress(enemy)
             
