@@ -19,11 +19,7 @@ while running:
 
 # Establish global variables
 dead = False
-gold = 0
-damage = 1
-health = 10
-defence = 0
-equipped_weapon = None
+player = {"health": 10, "damage": 1, "defence": 0, "gold": 0, "weapon": None}
 wave = 0
 
 
@@ -49,19 +45,23 @@ def tutorial():
 
     # Runs through three cycles of battling and preparing
     for boss in tutorial_bosses:
-        battle(boss, damage, health, "TUTORIAL")
+        battle(boss, player, "TUTORIAL")
         preperation()
 
     skip = input("Great job! Good luck with the rest of the game! ")
         
-def battle(boss_stats: dict, dmg: int, hp: int, wave: int):
+def battle(boss_stats: dict, player: dict, wave: int):
     """
     A function that runs a battle process between the user and an enemy.
     """
     
     global gold, dead
 
-    # Establishing temporary variables for the boss statistics
+    # Establishing temporary variables for the battle
+    hp = player["health"]
+    dmg = player["damage"]
+    defence = player["defence"]
+    
     boss_hp = boss_stats["hp"]
     boss_dmg = boss_stats["dmg"]
 
@@ -77,16 +77,13 @@ Damage: {boss_dmg}""")
     # Loops through a fight until either party falls below 0 hp.
     while hp > 0 and boss_hp > 0:
         print()
-        if equipped_weapon != None:
-            damage_c = dmg * equipped_weapon["damage"]
+        if player['weapon'] != None:
+            damage_c = dmg * player["weapon"]["damage"]
             boss_hp = round((boss_hp - damage_c), 2)
         else:
             boss_hp = round((boss_hp - dmg), 2)
 
-        if defence > boss_dmg:
-            hp -= 0
-        else:
-            hp = round(hp - (boss_dmg * (1 - (defence/20))), 2)
+        hp = round(hp - (boss_dmg * (1 - (defence/20))), 2)
 
         # Prevents hp from going below 0
         if boss_hp < 0:
@@ -106,7 +103,7 @@ Your Health: {hp}
     elif hp > 0:
         gold_dropped = randint(1,2)
         print(f"You won! You gain {gold_dropped} gold!")
-        gold += gold_dropped
+        player["gold"] += gold_dropped
     else:
         print("You died :(")
         dead = True
@@ -115,42 +112,39 @@ def upgrade():
     """
     A function that allows the user to upgrade their core stats.
     """
-    
-    global gold, health, defence, damage
     exit = False
 
     # Asks the player what they would like to do until they run out of gold or want to exit
-    while gold > 0 and exit == False:
-        print(f"Gold: {gold}, Health: {health}, Defence: {defence}, Damage: {damage}")
+    while exit == False:
+        print(f"Gold: {player['gold']}, Health: {player['health']}, Defence: {player['defence']}, Damage: {player['damage']}")
         upgrade_choice = input("What would you like to upgrade? [Type 'X' to exit] ")
 
         # Evalutes the player's choice and upgrades accordingly
         if upgrade_choice == "health":
-            health += 2
-            gold -= 1
+            player["health"] += 2
+            player["gold"] -= 1
         elif upgrade_choice == "defence":
-            if defence >= 15:
+            if player["defence"] >= 15:
                 print("Defence is maxed!")
             else:
-                defence += 1
-                gold -= 1
+                player["defence"] += 1
+                player["gold"] -= 1
         elif upgrade_choice == "damage":
-            damage += 1
-            gold -= 1
+            player["damage"] += 1
+            player["gold"] -= 1
         elif upgrade_choice == "X":
             exit = True
         else:
             print("Invalid choice!")
             
-    print(f"Gold: {gold}, Health: {health}, Defence: {defence}, Damage: {damage}")
-
+    print(f"Gold: {player['gold']}, Health: {player['health']}, Defence: {player['defence']}, Damage: {player['damage']}")
 
 def weapon_shop():
     """
     A function that displays available weapons and allows the user to buy them.
     """
     
-    global equipped_weapon, gold
+    global player, gold
 
     weapons = [
     {"name": "Slipper", "cost": 5, "damage": 2},
@@ -173,46 +167,46 @@ def weapon_shop():
         if weapon_choice == "slipper":
             if weapons[0]["cost"] == "SOLD :(":
                 print("You already bought this weapon.")
-            elif gold < weapons[0]["cost"]:
+            elif player['gold'] < weapons[0]["cost"]:
                 print("You do not have enough money.")
             else:    
-                equipped_weapon = weapons[0]
-                gold -= weapons[0]["cost"]
+                player["weapon"] = weapons[0]
+                player['gold'] -= weapons[0]["cost"]
                 weapons[0]["cost"] = "SOLD :("
-                print(f"You successfully bought a {weapon_choice}. You now have {gold} gold.")
+                print(f"You successfully bought a {weapon_choice}. You now have {player['gold']} gold.")
             
         elif weapon_choice == "belt":
             if weapons[1]["cost"] == "SOLD :(":
                 print("You already bought this weapon.")
-            elif gold < weapons[1]["cost"]:
+            elif player['gold'] < weapons[1]["cost"]:
                 print("You do not have enough money.")
             else:    
-                equipped_weapon = weapons[1]
-                gold -= weapons[1]["cost"]
+                player["weapon"] = weapons[1]
+                player['gold'] -= weapons[1]["cost"]
                 weapons[1]["cost"] = "SOLD :(" 
-                print(f"You successfully bought a {weapon_choice}. You now have {gold} gold.")
+                print(f"You successfully bought a {weapon_choice}. You now have {player['gold']} gold.")
                 
         elif weapon_choice == "sword":
             if weapons[2]["cost"] == "SOLD :(":
                 print("You already bought this weapon.")
-            elif gold < weapons[2]["cost"]:
+            elif player['gold'] < weapons[2]["cost"]:
                 print("You do not have enough money.")
             else:    
-                equipped_weapon = weapons[2]
-                gold -= weapons[2]["cost"]
+                player["weapon"] = weapons[2]
+                player['gold'] -= weapons[2]["cost"]
                 weapons[2]["cost"] = "SOLD :(" 
-                print(f"You successfully bought a {weapon_choice}. You now have {gold} gold.")
+                print(f"You successfully bought a {weapon_choice}. You now have {player['gold']} gold.")
                 
         elif weapon_choice == "pencil":
             if weapons[3]["cost"] == "SOLD :(":
                 print("You already bought this weapon.")
-            elif gold < weapons[3]["cost"]:
+            elif player['gold'] < weapons[3]["cost"]:
                 print("You do not have enough money.")
             else:    
-                equipped_weapon = weapons[3]
-                gold -= weapons[3]["cost"]
+                player["weapon"] = weapons[3]
+                player['gold'] -= weapons[3]["cost"]
                 weapons[3]["cost"] = "SOLD :(" 
-                print(f"You successfully bought a {weapon_choice}. You now have {gold} gold.")
+                print(f"You successfully bought a {weapon_choice}. You now have {player['gold']} gold.")
             
         elif weapon_choice == "X":
             exit = True
@@ -235,7 +229,7 @@ def preperation():
     else:
         print("You set up camp again after surviving another boss encounter. Take time to rest and prepare for the next one.")
         while skip == False:
-            print(f"You have {gold} gold.")
+            print(f"You have {player['gold']} gold.")
             prep_choice = input("Do you want to upgrade, buy a new weapon, or skip? ")
             if prep_choice == "upgrade":
                 upgrade()
@@ -249,33 +243,53 @@ def preperation():
     print()
 
 
-def random_event():
-    global equipped_weapon, health, defence, damage
+def random_event(completed):
+    global player
     
     number = randint(1,4) 
     while number in completed:
         number = randint(1,4)
         
     completed.append(number)
-    completed = []
+
 
     if number == 1:
         print("You meet a butcherer.")
     if number == 2:
-        print("You come across ")    
+        print("You come across a grocery store.")
+        choice = input("Do you buy milk, fried chicken, rice, a chili pepper, or nothing? [1/2/3/4/5]")
+        
+        if choice == "1":
+            print("The milk strengthen your bones, giving bonus defence.")
+            player["defence"] += 2
+        elif choice == "2":
+            print("The greasy chicken increases your blood pressure, negatively impacting your health.")
+            player["health"] *= 0.9
+        elif choice == "3":
+            print("The rice fills you up, envigorating you and granting bonus health.")
+            player["health"] *= 1.2
+        elif choice == "4":
+            print("The chili pepper sets your mouth on fire, granting a small bonus to your damage.")
+            player['damage'] += 1
+        elif choice == "5":
+            print("You just walk away.")
     if number == 3:
         print("You find a stash of spices.")
-        if equipped_weapon != None:
+        if player["weapon"] != None:
             choice = input("Do you choose to season your weapon or consume the spices yourself? [1, 2] ")
         else:
-            print("You consume all of the spices.")
-            choice = "2"
+            choice = input("Do you consume all of the spices? [2, 3] ")
+            
         if choice == "1":
-            equipped_weapon["dmg"] *= 2
-        if choice == "2":
-            defence *= 1.1
-            health *= 0.9
-            attack * 1.25
+            print("You enhance your weapon with flavour, doubling its damage.")
+            player['weapon']['damage'] *= 2
+        elif choice == "2":
+            print("You consume the spices, sacrificing your health for damage and defence.")
+            player['defence'] *= 1.1
+            player['health'] *= 0.9
+            player['damage'] *= 1.25
+        elif choice == "3":
+            print("You just walk away.")
             
             
     if number == 4:
@@ -287,12 +301,9 @@ def reset():
     A function that resets the primary game variables.
     """
     
-    global dead, gold, damage, health, defence, weapons, equipped_weapon, wave
+    global dead, weapons, player, wave
     dead = False
-    gold = 0
-    damage = 1
-    health = 10
-    defence = 0
+    player = {"health": 10, "damage": 1, "defence": 0, "gold": 0, "weapon": None}
     wave = 0
     weapons = [
         {"name": "Slipper", "cost": 5, "damage": 2},
@@ -300,7 +311,6 @@ def reset():
         {"name": "Sword", "cost": 20, "damage": 5},
         {"name": "Pencil", "cost": 120, "damage": 10},
               ]
-    equipped_weapon = None
 
 def progress(old_enemy: dict) -> dict:
     """
@@ -320,11 +330,12 @@ def main():
     global dead, wave
     
     campaign_bosses = [
-    {"name": "RANDOM", "hp": 10, "dmg": 1},
-    {},
-    {},
-    {"name": "Mr. Banjevic", "hp": 10, "dmg": 1}
+    {"name": "Ronald McDonald", "hp": 25, "dmg": 1},
+    {"name": "Colonel Sanders", "hp": 20, "dmg": 4},
+    {"name": "Gordon Ramsey", "hp": 20, "dmg": 8},
+    {"name": "Mr. Banjevic", "hp": 50, "dmg": 6}
                   ]
+    completed_events = []
     
     close = False
     print("Welcome to GAME NAME!")
@@ -339,11 +350,17 @@ def main():
             wave += 1
             enemy = progress(enemy)
             if wave % 5 == 0:
-                battle(campaign_bosses[wave/5 - 1], damage, health, wave)
+                print("--------------| BOSS BATTLE |--------------")
+                print("You meet a chef...")
+                battle(campaign_bosses[round(wave/5 - 1)], player, wave)
+                if dead == False:
+                    print("The boss tips you for your service...")
+                    print("You gain 5 extra gold.")
+                    player['gold'] += 5
             elif wave % 10 == 3 or wave % 10 == 8:
-                random_event()
+                random_event(completed_events)
             else:
-                battle(enemy, damage, health, wave)
+                battle(enemy, player, wave)
             preperation()
 
         if dead == False:
