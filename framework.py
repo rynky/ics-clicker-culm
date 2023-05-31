@@ -19,7 +19,7 @@ while running:
 
 # Establish global variables
 dead = False
-player = {"health": 10, "damage": 1, "defence": 0, "gold": 0, "weapon": None}
+player = {"health": 10, "damage": 1, "defence": 0, "gold": 0, "weapon": None, 'seasoned': False, "chicken": False}
 wave = 0
 
 
@@ -244,6 +244,9 @@ def preperation():
 
 
 def random_event(completed):
+    """
+    A function that creates random interactive events.
+    """
     global player
     
     number = randint(1,4) 
@@ -252,12 +255,14 @@ def random_event(completed):
         
     completed.append(number)
 
-
+    # Butcher Event
     if number == 1:
         print("You meet a butcherer.")
+
+    # Market Event
     if number == 2:
-        print("You come across a grocery store.")
-        choice = input("Do you buy milk, fried chicken, rice, a chili pepper, or nothing? [1/2/3/4/5]")
+        print("You come across a food market.")
+        choice = input("Do you buy milk, fried chicken, rice, a chili pepper, or nothing? [1/2/3/4/5] ")
         
         if choice == "1":
             print("The milk strengthen your bones, giving bonus defence.")
@@ -273,8 +278,10 @@ def random_event(completed):
             player['damage'] += 1
         elif choice == "5":
             print("You just walk away.")
+
+    # Spices Event
     if number == 3:
-        print("You find a stash of spices.")
+        print("You find a stash of 11 herbs and spices.")
         if player["weapon"] != None:
             choice = input("Do you choose to season your weapon or consume the spices yourself? [1, 2] ")
         else:
@@ -288,10 +295,11 @@ def random_event(completed):
             player['defence'] *= 1.1
             player['health'] *= 0.9
             player['damage'] *= 1.25
-        elif choice == "3":
-            print("You just walk away.")
+        else:
+            print("You keep the spices.")
+            player['seasoned'] = True
             
-            
+    # Sacrifice Event
     if number == 4:
         print("You ")
         
@@ -328,44 +336,78 @@ def progress(old_enemy: dict) -> dict:
 
 def main():
     global dead, wave
-    
+
+    # Establishing Variables
     campaign_bosses = [
-    {"name": "Ronald McDonald", "hp": 25, "dmg": 1},
-    {"name": "Colonel Sanders", "hp": 20, "dmg": 4},
-    {"name": "Gordon Ramsey", "hp": 20, "dmg": 8},
-    {"name": "Mr. Banjevic", "hp": 50, "dmg": 6}
+    {"name": "Ronald McDonald", "hp": 25, "dmg": 1, "ingredient": "potatoes"},
+    {"name": "Wendy", "hp": 20, "dmg": 4, "ingredient": "rice"},
+    {"name": "Colonel Sanders", "hp": 30, "dmg": 6, "ingredient": "chicken breasts"},
+    {"name": "Gordon Ramsay", "hp": 50, "dmg": 8, "ingredient": "onions"}
                   ]
     completed_events = []
-    
     close = False
-    print("Welcome to GAME NAME!")
+
+    # Introduction
+    print("Welcome to Medieval Munchies!")
     run_tutorial = input("Do you want a tutorial? [y/n] ")
     if run_tutorial == "y":
         tutorial()
-        
+
+    # Initiating Game
     while close == False:
         enemy = {"name": "Knight", "hp": 5, "dmg": 1}
         reset()
         while dead == False and wave < 20: 
             wave += 1
             enemy = progress(enemy)
+
+            # Boss Battle
             if wave % 5 == 0:
                 print("--------------| BOSS BATTLE |--------------")
                 print("You meet a chef...")
                 battle(campaign_bosses[round(wave/5 - 1)], player, wave)
                 if dead == False:
-                    print("The boss tips you for your service...")
-                    print("You gain 5 extra gold.")
+
+                    # Colonel Sanders + Spices Event
+                    if campaign_bosses[round(wave/5 - 1)]['name'] == "Colonel Sanders":
+                        if player['seasoned'] == True:
+                            print("Looks like you found my secret 11 herbs and spices...")
+                            input("Press enter to continue...")
+                            print("The Colonel gives you a bucket of Fried Chicken.")
+                            player['chicken'] = True
+                            input("Press enter to continue...")   
+                            print()
+                            
+                    print(f"The chef tips you 5 gold for your service and drops you his ingredient: {campaign_bosses[round(wave/5 - 1)]['ingredient']}")
                     player['gold'] += 5
+
+            # Event (waves 3, 8, 13, 18)
             elif wave % 10 == 3 or wave % 10 == 8:
                 random_event(completed_events)
+
+            # Normal Battle
             else:
                 battle(enemy, player, wave)
-            preperation()
+                
+            if wave < 20:
+                preperation()
 
+
+        # Ending Sequences
         if dead == False:
-            print("GOOD JOB!")
+            if player['chicken'] == True:
+                choice = input("Do you feed the chef the Colonel's chicken or your own dish? [1,2]")
             
+            if choice == "1":
+                print("------- Colonel's Chicken Ending -------")
+                print("You gave Mr. Banjevic the best chicken he's ever had!")
+            else:
+                print("------- Normal Ending -------")
+                print("GOOD JOB! You collected all of the ingredients and prepared an amazing meal for Mr. Banjevic!")
+
+            
+
+        # Restart Game
         stop = input("Would you like to play again? [y/n] ")
         if stop != "y":
             close = True
