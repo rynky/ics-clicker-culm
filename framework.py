@@ -25,25 +25,6 @@ health = 10
 defence = 0
 equipped_weapon = None
 wave = 0
-weapons = [
-    {"name": "Slipper", "cost": 5, "damage": 2},
-    {"name": "Belt", "cost": 10, "damage": 3},
-    {"name": "Sword", "cost": 20, "damage": 5},
-    {"name": "Pencil", "cost": 120, "damage": 10},
-        ]
-
-# These are for milestones
-campaign_bosses = [
-    {"name": "RANDOM", "hp": 10, "dmg": 1},
-    {},
-    {},
-    {"name": "Mr. Banjevic", "hp": 10, "dmg": 1}
-                  ]
-campaign_events = [
-    {},
-    {},
-    {}
-]
 
 
 def tutorial():
@@ -105,7 +86,7 @@ Damage: {boss_dmg}""")
         if defence > boss_dmg:
             hp -= 0
         else:
-            hp = round(hp - (boss_dmg - defence), 2)
+            hp = round(hp - (boss_dmg * (1 - (defence/20))), 2)
 
         # Prevents hp from going below 0
         if boss_hp < 0:
@@ -148,8 +129,11 @@ def upgrade():
             health += 2
             gold -= 1
         elif upgrade_choice == "defence":
-            defence += 1
-            gold -= 1
+            if defence >= 15:
+                print("Defence is maxed!")
+            else:
+                defence += 1
+                gold -= 1
         elif upgrade_choice == "damage":
             damage += 1
             gold -= 1
@@ -166,7 +150,15 @@ def weapon_shop():
     A function that displays available weapons and allows the user to buy them.
     """
     
-    global equipped_weapon, gold, weapons
+    global equipped_weapon, gold
+
+    weapons = [
+    {"name": "Slipper", "cost": 5, "damage": 2},
+    {"name": "Belt", "cost": 10, "damage": 3},
+    {"name": "Sword", "cost": 20, "damage": 5},
+    {"name": "Pencil", "cost": 120, "damage": 10},
+        ]
+    
     exit = False
 
     # Prints the available weapons
@@ -255,6 +247,39 @@ def preperation():
             else:
                 print("Invalid choice!")
     print()
+
+
+def random_event():
+    global equipped_weapon, health, defence, damage
+    
+    number = randint(1,4) 
+    while number in completed:
+        number = randint(1,4)
+        
+    completed.append(number)
+    completed = []
+
+    if number == 1:
+        print("You meet a butcherer.")
+    if number == 2:
+        print("You come across ")    
+    if number == 3:
+        print("You find a stash of spices.")
+        if equipped_weapon != None:
+            choice = input("Do you choose to season your weapon or consume the spices yourself? [1, 2] ")
+        else:
+            print("You consume all of the spices.")
+            choice = "2"
+        if choice == "1":
+            equipped_weapon["dmg"] *= 2
+        if choice == "2":
+            defence *= 1.1
+            health *= 0.9
+            attack * 1.25
+            
+            
+    if number == 4:
+        print("You ")
         
         
 def reset():
@@ -262,7 +287,7 @@ def reset():
     A function that resets the primary game variables.
     """
     
-    global dead, gold, damage, health, defence, weapons,  equipped_weapon, campaign_bosses, campaign_events, wave
+    global dead, gold, damage, health, defence, weapons, equipped_weapon, wave
     dead = False
     gold = 0
     damage = 1
@@ -276,17 +301,6 @@ def reset():
         {"name": "Pencil", "cost": 120, "damage": 10},
               ]
     equipped_weapon = None
-    campaign_bosses = [
-    {"name": "RANDOM", "hp": 10, "dmg": 1},
-    {},
-    {},
-    {"name": "Mr. Banjevic", "hp": 10, "dmg": 1}
-                  ]
-    campaign_events = [
-    {},
-    {},
-    {}
-]
 
 def progress(old_enemy: dict) -> dict:
     """
@@ -304,6 +318,14 @@ def progress(old_enemy: dict) -> dict:
 
 def main():
     global dead, wave
+    
+    campaign_bosses = [
+    {"name": "RANDOM", "hp": 10, "dmg": 1},
+    {},
+    {},
+    {"name": "Mr. Banjevic", "hp": 10, "dmg": 1}
+                  ]
+    
     close = False
     print("Welcome to GAME NAME!")
     run_tutorial = input("Do you want a tutorial? [y/n] ")
@@ -313,12 +335,19 @@ def main():
     while close == False:
         enemy = {"name": "Knight", "hp": 5, "dmg": 1}
         reset()
-        while dead == False: 
+        while dead == False and wave < 20: 
             wave += 1
             enemy = progress(enemy)
-            
-            battle(enemy, damage, health, wave)
+            if wave % 5 == 0:
+                battle(campaign_bosses[wave/5 - 1], damage, health, wave)
+            elif wave % 10 == 3 or wave % 10 == 8:
+                random_event()
+            else:
+                battle(enemy, damage, health, wave)
             preperation()
+
+        if dead == False:
+            print("GOOD JOB!")
             
         stop = input("Would you like to play again? [y/n] ")
         if stop != "y":
