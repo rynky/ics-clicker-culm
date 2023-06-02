@@ -161,54 +161,21 @@ def weapon_shop():
 
     
     while exit == False:
-        weapon_choice = input("What do you choose to buy? [X to exit]: ")
+        weapon_choice = int(input("What do you choose to buy? [1/2/3/4/0]: "))
 
         # Evaluates the player's choice and checks if they have enough gold to afford the item.
-        if weapon_choice == "slipper":
-            if weapons[0]["cost"] == "SOLD :(":
+        if weapon_choice in [1,2,3,4]:
+            if weapons[weapon_choice-1]["cost"] == "SOLD :(":
                 print("You already bought this weapon.")
-            elif player['gold'] < weapons[0]["cost"]:
+            elif player['gold'] < weapons[weapon_choice-1]["cost"]:
                 print("You do not have enough money.")
             else:    
-                player["weapon"] = weapons[0]
-                player['gold'] -= weapons[0]["cost"]
-                weapons[0]["cost"] = "SOLD :("
-                print(f"You successfully bought a {weapon_choice}. You now have {player['gold']} gold.")
+                player["weapon"] = weapons[weapon_choice-1]
+                player['gold'] -= weapons[weapon_choice-1]["cost"]
+                weapons[weapon_choice-1]["cost"] = "SOLD :("
+                print(f"You successfully bought a {weapons[weapon_choice-1]['name']}. You now have {player['gold']} gold.")
             
-        elif weapon_choice == "belt":
-            if weapons[1]["cost"] == "SOLD :(":
-                print("You already bought this weapon.")
-            elif player['gold'] < weapons[1]["cost"]:
-                print("You do not have enough money.")
-            else:    
-                player["weapon"] = weapons[1]
-                player['gold'] -= weapons[1]["cost"]
-                weapons[1]["cost"] = "SOLD :(" 
-                print(f"You successfully bought a {weapon_choice}. You now have {player['gold']} gold.")
-                
-        elif weapon_choice == "sword":
-            if weapons[2]["cost"] == "SOLD :(":
-                print("You already bought this weapon.")
-            elif player['gold'] < weapons[2]["cost"]:
-                print("You do not have enough money.")
-            else:    
-                player["weapon"] = weapons[2]
-                player['gold'] -= weapons[2]["cost"]
-                weapons[2]["cost"] = "SOLD :(" 
-                print(f"You successfully bought a {weapon_choice}. You now have {player['gold']} gold.")
-                
-        elif weapon_choice == "pencil":
-            if weapons[3]["cost"] == "SOLD :(":
-                print("You already bought this weapon.")
-            elif player['gold'] < weapons[3]["cost"]:
-                print("You do not have enough money.")
-            else:    
-                player["weapon"] = weapons[3]
-                player['gold'] -= weapons[3]["cost"]
-                weapons[3]["cost"] = "SOLD :(" 
-                print(f"You successfully bought a {weapon_choice}. You now have {player['gold']} gold.")
-            
-        elif weapon_choice == "X":
+        elif weapon_choice == 0:
             exit = True
         else:
             print("Invalid choice!")
@@ -310,8 +277,9 @@ def reset():
     """
     
     global dead, weapons, player, wave
+    enemy = {"name": "Knight", "hp": 5, "dmg": 1}
     dead = False
-    player = {"health": 10, "damage": 1, "defence": 0, "gold": 0, "weapon": None}
+    player = {"health": 10, "damage": 1, "defence": 0, "gold": 0, "weapon": None, 'seasoned': False, "chicken": False}
     wave = 0
     weapons = [
         {"name": "Slipper", "cost": 5, "damage": 2},
@@ -338,6 +306,7 @@ def main():
     global dead, wave
 
     # Establishing Variables
+    enemy = {"name": "Knight", "hp": 5, "dmg": 1}
     campaign_bosses = [
     {"name": "Ronald McDonald", "hp": 25, "dmg": 1, "ingredient": "potatoes"},
     {"name": "Wendy", "hp": 20, "dmg": 4, "ingredient": "rice"},
@@ -355,7 +324,6 @@ def main():
 
     # Initiating Game
     while close == False:
-        enemy = {"name": "Knight", "hp": 5, "dmg": 1}
         reset()
         while dead == False and wave < 20: 
             wave += 1
