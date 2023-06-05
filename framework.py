@@ -21,6 +21,7 @@ while running:
 dead = False
 player = {"health": 10, "damage": 1, "defence": 0, "gold": 0, "weapon": None, 'seasoned': False, "chicken": False}
 wave = 0
+ENEMY_SCALING = 1.2
 
 
 def tutorial():
@@ -144,7 +145,7 @@ def weapon_shop():
     A function that displays available weapons and allows the user to buy them.
     """
     
-    global player, gold
+    global player
 
     weapons = [
     {"name": "Slipper", "cost": 5, "damage": 2},
@@ -298,8 +299,8 @@ def progress(old_enemy: dict) -> dict:
 
     # Randomly chooses a basic enemy name and multiplies the hp and dmg of the enemy by a constant
     new_enemy['name'] = ENEMY_NAMES[randint(0, len(ENEMY_NAMES)-1)]
-    new_enemy['hp'] = round((old_enemy['hp'] * 1.2), 2)
-    new_enemy['dmg'] = round((old_enemy['dmg'] * 1.1), 1)
+    new_enemy['hp'] = round((old_enemy['hp'] * ENEMY_SCALING), 2)
+    new_enemy['dmg'] = round((old_enemy['dmg'] * ENEMY_SCALING), 1)
     return new_enemy
 
 def main():
@@ -384,3 +385,4 @@ def main():
         
 
 main()
+        
