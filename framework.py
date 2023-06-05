@@ -50,7 +50,7 @@ def tutorial():
 
     skip = input("Great job! Good luck with the rest of the game! ")
         
-def battle(boss_stats: dict, player: dict, wave: int):
+def battle(enemy_stats: dict, player: dict, wave: int):
     """
     A function that runs a battle process between the user and an enemy.
     """
@@ -62,43 +62,43 @@ def battle(boss_stats: dict, player: dict, wave: int):
     dmg = player["damage"]
     defence = player["defence"]
     
-    boss_hp = boss_stats["hp"]
-    boss_dmg = boss_stats["dmg"]
+    enemy_hp = enemy_stats["hp"]
+    enemy_dmg = enemy_stats["dmg"]
 
     # Prints information about the boss
     print(f"Wave: {wave}")
-    print(f"You are about to fight {boss_stats['name']}!")
-    print(f"""{boss_stats['name']} statistics:
-Health: {boss_hp} 
-Damage: {boss_dmg}""")
+    print(f"You are about to fight {enemy_stats['name']}!")
+    print(f"""{enemy_stats['name']} statistics:
+Health: {enemy_hp} 
+Damage: {enemy_dmg}""")
     ready = input("Press any key to start: ")
     print("--------------------------------------------------")
 
     # Loops through a fight until either party falls below 0 hp.
-    while hp > 0 and boss_hp > 0:
+    while hp > 0 and enemy_hp > 0:
         print()
         if player['weapon'] != None:
             damage_c = dmg * player["weapon"]["damage"]
-            boss_hp = round((boss_hp - damage_c), 2)
+            enemy_hp = round((enemy_hp - damage_c), 2)
         else:
-            boss_hp = round((boss_hp - dmg), 2)
+            enemy_hp = round((enemy_hp - dmg), 2)
 
-        hp = round(hp - (boss_dmg * (1 - (defence/20))), 2)
+        hp = round(hp - (enemy_dmg * (1 - (defence/20))), 2)
 
         # Prevents hp from going below 0
-        if boss_hp < 0:
-            boss_hp = 0
+        if enemy_hp < 0:
+            enemy_hp = 0
         if hp < 0:
             hp = 0
         
-        print(f"""{boss_stats['name']}'s Health: {boss_hp} 
+        print(f"""{enemy_stats['name']}'s Health: {enemy_hp} 
 Your Health: {hp}
         """)
         
     print("--------------------------------------------------")
 
     # Checks the result of the battle and rewards the player accordingly
-    if hp == 0 and boss_hp == 0:
+    if hp == 0 and enemy_hp == 0:
         print(f"You and the enemy simultaneously collapsed. You got away but couldn't safely pick up the gold.")
     elif hp > 0:
         gold_dropped = randint(1,2)
@@ -384,4 +384,3 @@ def main():
         
 
 main()
-        
