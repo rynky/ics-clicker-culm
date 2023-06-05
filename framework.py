@@ -113,26 +113,26 @@ def upgrade():
     """
     A function that allows the user to upgrade their core stats.
     """
+    stats = {'health': {'cost': 1, 'increment': 2}, 'damage': {'cost': 1, 'increment': 2}, 'defence': {'cost': 1, 'increment': 2, 'max': 15}}
+    
     exit = False
 
     # Asks the player what they would like to do until they run out of gold or want to exit
     while exit == False:
         print(f"Gold: {player['gold']}, Health: {player['health']}, Defence: {player['defence']}, Damage: {player['damage']}")
+        
+        
         upgrade_choice = input("What would you like to upgrade? [Type 'X' to exit] ")
 
         # Evalutes the player's choice and upgrades accordingly
-        if upgrade_choice == "health":
-            player["health"] += 2
-            player["gold"] -= 1
-        elif upgrade_choice == "defence":
-            if player["defence"] >= 15:
-                print("Defence is maxed!")
-            else:
-                player["defence"] += 1
-                player["gold"] -= 1
-        elif upgrade_choice == "damage":
-            player["damage"] += 1
-            player["gold"] -= 1
+        if upgrade_choice in stats.keys():
+            if player["gold"] > player[upgrade_choice]["cost"]:
+                if upgrade_choice == "defence":
+                    if player["defence"] >= stats['defence']['max']:
+                        print("Defence is maxed!")
+                player[upgrade_choice] += stats[upgrade_choice]['increment']
+                player["gold"] -= stats[upgrade_choice]['cost']
+                
         elif upgrade_choice == "X":
             exit = True
         else:
@@ -155,6 +155,7 @@ def weapon_shop():
         ]
     
     exit = False
+
 
     # Prints the available weapons
     for weapon in weapons:
