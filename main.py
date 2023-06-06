@@ -16,6 +16,9 @@ IMAGE_NAME : [IMAGE_OBJECT, IMAGE_COORDINATES]
 MAIN_MENU_TEXT = {}
 MAIN_MENU_IMAGES = {}
 
+SHOP_MENU_TEXT = {}
+SHOP_MENU_IMAGES = {}
+
 
 #------------Window settings------------# 
 
@@ -24,6 +27,7 @@ HEIGHT = WIN.get_height()
 WIDTH = WIN.get_width()
 display.set_caption("Medieval Munchies")
 display.flip()  # Screen Update
+SCREEN_STATUS = "MAIN"  # Track which screen the user is on
 
 
 #-------------Text settings-------------# 
@@ -124,30 +128,61 @@ def main_menu():
 
     create_text("title", MAIN_MENU_TEXT, "Medieval Munchies", "Times New Roman", 64, (0, 0, 0), (300, 0))
 
-    create_image("player", MAIN_MENU_IMAGES, "Images\chef-character.png", (-75, 45), transparent=True, scaling=[600, 600])
+    create_image("player", MAIN_MENU_IMAGES, "Images/chef-character.png", (-75, 45), transparent=True, scaling=[600, 600])
 
     create_text("upgrade", MAIN_MENU_TEXT, "UPGRADE", "Times New Roman", 48, (219, 172, 52), ((WIDTH - 984)/2, HEIGHT/2 + 225))
-    create_image("upgrade", MAIN_MENU_IMAGES, "Images\\anvil.png", (WIDTH - 800, HEIGHT/2 + 200), transparent=True, scaling=[120, 120])
+    create_image("upgrade", MAIN_MENU_IMAGES, "Images/anvil.png", (WIDTH - 800, HEIGHT/2 + 200), transparent=True, scaling=[120, 120])
     
     create_text("fight", MAIN_MENU_TEXT, "FIGHT", "Times New Roman", 48, (255, 0, 0), ((WIDTH - 158)/2, HEIGHT/2 + 225))
-    create_image("fight", MAIN_MENU_IMAGES, "Images\carrot-sword.png", (WIDTH/2 + 65, HEIGHT/2 + 212.5), transparent=True, scaling=[80, 80])
+    create_image("fight", MAIN_MENU_IMAGES, "Images/carrot-sword.png", (WIDTH/2 + 65, HEIGHT/2 + 212.5), transparent=True, scaling=[80, 80])
 
     create_text("shop", MAIN_MENU_TEXT, "SHOP", "Times New Roman", 48, (17, 140, 79), (WIDTH - 325, HEIGHT/2 + 225))
-    create_image("shop", MAIN_MENU_IMAGES, "Images\shopping-cart.png", (WIDTH - 180, HEIGHT/2 + 212.5), transparent=True, scaling=[80, 80])
+    create_image("shop", MAIN_MENU_IMAGES, "Images/shopping-cart.png", (WIDTH - 180, HEIGHT/2 + 212.5), transparent=True, scaling=[80, 80])
 
+
+def shop_menu(items: list):
+    """
+    Given a list <items> that contains elements in the format [name, path, coords, scale], 
+    render each item to the shop menu.
+    """
+
+    global SHOP_MENU_TEXT, SHOP_MENU_IMAGES, WIDTH
+
+    for i in range(len(items)):
+        create_image(
+            items[i][0], # Name 
+            SHOP_MENU_IMAGES, # Location (Dictionary)
+            items[i][1], # Path
+            (items[i][2][0], items[i][2][1]), # Coordinates
+            transparent=True, # Transparency
+            scaling=[items[i][3][0], items[i][3][1]] # Size
+        )
 
 
 #---------------Game Loop---------------# 
 
 
 def main():
+
+    global SCREEN_STATUS
+    SCREEN_STATUS = "SHOP"
         
     # Important flags and accumulators
     clicks = 0
     running = True
 
     # User Interface
-    main_menu()
+    if SCREEN_STATUS == "MAIN":
+        TEXT, IMAGES = MAIN_MENU_IMAGES, MAIN_MENU_TEXT
+        main_menu()
+    elif SCREEN_STATUS == "SHOP":
+        TEXT, IMAGES = SHOP_MENU_IMAGES, SHOP_MENU_TEXT
+        shop_menu([
+            ["cs", "Images/chopstick.png", (125, 16), [200,200]],
+            ["fp", "Images/frying-pan.png", (750, 27), [200,200]],
+            ["kf", "Images/knife.png", (485, 0), [300,300]],
+            ["sp", "Images/spatula.png", (250, 0), [300, 300]]
+        ])
 
     # Actual Game Loop
     while running:
@@ -166,10 +201,10 @@ def main():
 
         # Renders all buttons onto the game window
         WIN.fill((255, 255, 228))  # Fill the screen with the background color before rendering
-        for text in MAIN_MENU_TEXT:
-            WIN.blit(MAIN_MENU_TEXT[text][0], MAIN_MENU_TEXT[text][1])
-        for image in MAIN_MENU_IMAGES:
-            WIN.blit(MAIN_MENU_IMAGES[image][0], MAIN_MENU_IMAGES[image][1])
+        for text in TEXT:
+            WIN.blit(TEXT[text][0], TEXT[text][1])
+        for image in IMAGES:
+            WIN.blit(IMAGES[image][0], IMAGES[image][1])
         
         display.update()
 
