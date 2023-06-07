@@ -21,12 +21,14 @@ while running:
 dead = False
 player = {"health": 10, "damage": 1, "defence": 0, "gold": 0, "weapon": None, 'seasoned': False, "chicken": False}
 wave = 0
-ENEMY_SCALING = 1.2
+ENEMYHP_SCALING = 1.2
+ENEMYDMG_SCALING = 1.1
 
 
 def tutorial():
     """
-    A function that plays a tutorial for the user. This includes the core game functions.
+    A function that plays a tutorial for the user. This includes three cycles of the main core
+    game phases.
     """
     
     tutorial_bosses = [
@@ -84,7 +86,7 @@ Damage: {enemy_dmg}""")
         else:
             enemy_hp = round((enemy_hp - dmg), 2)
 
-        hp = round(hp - (enemy_dmg * (1 - (defence/20))), 2)
+        hp = round(hp - (enemy_dmg * (1 - (defence/10))), 2)
 
         # Prevents hp from going below 0
         if enemy_hp < 0:
@@ -102,7 +104,7 @@ Your Health: {hp}
     if hp == 0 and enemy_hp == 0:
         print(f"You and the enemy simultaneously collapsed. You got away but couldn't safely pick up the gold.")
     elif hp > 0:
-        gold_dropped = randint(1,2)
+        gold_dropped = randint(1,1)
         print(f"You won! You gain {gold_dropped} gold!")
         player["gold"] += gold_dropped
     else:
@@ -113,25 +115,34 @@ def upgrade():
     """
     A function that allows the user to upgrade their core stats.
     """
-    stats = {'health': {'cost': 1, 'increment': 2}, 'damage': {'cost': 1, 'increment': 2}, 'defence': {'cost': 1, 'increment': 2, 'max': 15}}
+    stats = {'health': {'cost': 1, 'increment': 2}, 'defence': {'cost': 1, 'increment': 1, 'max': 5}, 'damage': {'cost': 2, 'increment': 1}}
     
     exit = False
 
     # Asks the player what they would like to do until they run out of gold or want to exit
     while exit == False:
+        print(f"------------ UPGRADE ------------")
         print(f"Gold: {player['gold']}, Health: {player['health']}, Defence: {player['defence']}, Damage: {player['damage']}")
-        
+        for stat in stats:
+            print(f"{stat} - cost: {stats[stat]['cost']}")
         
         upgrade_choice = input("What would you like to upgrade? [Type 'X' to exit] ")
 
         # Evalutes the player's choice and upgrades accordingly
         if upgrade_choice in stats.keys():
-            if player["gold"] > player[upgrade_choice]["cost"]:
+            if player["gold"] >= stats[upgrade_choice]["cost"]:
                 if upgrade_choice == "defence":
                     if player["defence"] >= stats['defence']['max']:
                         print("Defence is maxed!")
-                player[upgrade_choice] += stats[upgrade_choice]['increment']
-                player["gold"] -= stats[upgrade_choice]['cost']
+                    else:
+                        player[upgrade_choice] += stats[upgrade_choice]['increment']
+                        player["gold"] -= stats[upgrade_choice]['cost']
+                else:
+                    player[upgrade_choice] += stats[upgrade_choice]['increment']
+                    player["gold"] -= stats[upgrade_choice]['cost']
+                
+            else:
+                print("You do not have enough gold.")
                 
         elif upgrade_choice == "X":
             exit = True
@@ -148,10 +159,10 @@ def weapon_shop():
     global player
 
     weapons = [
-    {"name": "Slipper", "cost": 5, "damage": 2},
-    {"name": "Belt", "cost": 10, "damage": 3},
-    {"name": "Sword", "cost": 20, "damage": 5},
-    {"name": "Pencil", "cost": 120, "damage": 10},
+    {"name": "Chopsticks", "cost": 5, "damage": 1.25},
+    {"name": "Spatula", "cost": 8, "damage": 1.5},
+    {"name": "Knife", "cost": 10, "damage": 1.75},
+    {"name": "Frying Pan", "cost": 12, "damage": 2},
         ]
     
     exit = False
@@ -227,12 +238,29 @@ def random_event(completed):
     # Butcher Event
     if number == 1:
         print("You meet a butcherer.")
+        print("He offers you a job to tenderize his meats... ")
+        choice = input("Do you accept? [y/n] ")
+        if choice == 'y':
+            print("During the process, you gain strength, increasing your damage. He also pays you 1 gold for your time.")
+            player['gold'] += 1
+            player['damage'] += 1
+        if choice == 'n':
+            print("He asks you if you would sell him a cut of your own meat... ")
+            choice = input("Will you sell him your left arm? [y/n] ")
+            if choice == 'y':
+                print("He buys your left arm for 15 gold. In the process, you lose a lot of blood. The loss of your arm also makes it difficult to fight. Your damage and health is halved. ")
+                player['gold'] += 15
+                player['damage'] /= 2
+                player['health'] /= 2
+            elif choice == 'n':
+                print("You simply leave his store.")
 
     # Market Event
     if number == 2:
         print("You come across a food market.")
         choice = input("Do you buy milk, fried chicken, rice, a chili pepper, or nothing? [1/2/3/4/5] ")
-        
+        while choice not in ["1","2","3","4","5"]:
+            choice = input("What is your decision? [1/2/3/4/5] ")
         if choice == "1":
             print("The milk strengthen your bones, giving bonus defence.")
             player["defence"] += 2
@@ -270,7 +298,8 @@ def random_event(completed):
             
     # Sacrifice Event
     if number == 4:
-        print("You ")
+        print("you find a coin on the ground.")
+        player['gold'] += 1
         
         
 def reset():
@@ -300,15 +329,14 @@ def progress(old_enemy: dict) -> dict:
 
     # Randomly chooses a basic enemy name and multiplies the hp and dmg of the enemy by a constant
     new_enemy['name'] = ENEMY_NAMES[randint(0, len(ENEMY_NAMES)-1)]
-    new_enemy['hp'] = round((old_enemy['hp'] * ENEMY_SCALING), 2)
-    new_enemy['dmg'] = round((old_enemy['dmg'] * ENEMY_SCALING), 1)
+    new_enemy['hp'] = round((old_enemy['hp'] * ENEMYHP_SCALING), 2)
+    new_enemy['dmg'] = round((old_enemy['dmg'] * ENEMYDMG_SCALING), 1)
     return new_enemy
 
 def main():
     global dead, wave
 
     # Establishing Variables
-    enemy = {"name": "Knight", "hp": 5, "dmg": 1}
     campaign_bosses = [
     {"name": "Ronald McDonald", "hp": 25, "dmg": 1, "ingredient": "potatoes"},
     {"name": "Wendy", "hp": 20, "dmg": 4, "ingredient": "rice"},
@@ -327,6 +355,7 @@ def main():
     # Initiating Game
     while close == False:
         reset()
+        enemy = {"name": "Knight", "hp": 5, "dmg": 1}
         while dead == False and wave < 20: 
             wave += 1
             enemy = progress(enemy)
@@ -360,6 +389,9 @@ def main():
                 battle(enemy, player, wave)
                 
             if wave < 20:
+                player['health'] = round(player['health'], 2)
+                player['defence'] = round(player['defence'], 2)
+                player['damage'] = round(player['damage'], 2)
                 preperation()
 
 
@@ -367,6 +399,8 @@ def main():
         if dead == False:
             if player['chicken'] == True:
                 choice = input("Do you feed the chef the Colonel's chicken or your own dish? [1,2]")
+            else:
+                choice = input("Press any key to present your dish... ")
             
             if choice == "1":
                 print("------- Colonel's Chicken Ending -------")
