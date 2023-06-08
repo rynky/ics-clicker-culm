@@ -1,7 +1,9 @@
 # PyGame Imports and Initialization
 import pygame
 import pygame.display as display
+from pygame import time
 from random import randint
+clock = pygame.time.Clock()
 pygame.init()
 
 """
@@ -18,6 +20,13 @@ MAIN_MENU_IMAGES = {}
 
 SHOP_MENU_TEXT = {}
 SHOP_MENU_IMAGES = {}
+
+FIGHT_MENU_TEXT = {}
+FIGHT_MENU_IMAGES = {}
+# Work as Random Access storage for battle stages
+# This dictionary will contain the enemies in each stage
+# It may be altered at the convenience of the specific stage 
+TEMP_ENEMIES = {}
 
 
 #------------Window settings------------# 
@@ -119,14 +128,19 @@ def create_image(name: str,
     
 
 
-def check_button_coords(coordinates: (int, int), button: pygame.font, button_coordinates: (int, int)) -> bool:
+def check_button_coords(coordinates: (int, int), button: dict) -> bool:
     """
-    This function checks whether the given coordinates, <coordinates>, are inside of a button.
+    This function checks whether the given coordinates, <coordinates>, 
+    are inside of a button object via the <button> dictionary, with respect 
+    to the button's coordinates.
     """
     global WIDTH, HEIGHT 
     
-    BUTTON_WIDTH = button.get_width()
-    BUTTON_HEIGHT = button.get_height()
+    button_object = button[0]
+    button_coordinates = button[1]
+
+    BUTTON_WIDTH = button_object.get_width()
+    BUTTON_HEIGHT = button_object.get_height()
     
     print(button_coordinates[0], button_coordinates[1])
 
@@ -177,11 +191,25 @@ def shop_menu(items: list):
             scaling=[items[i][3][0], items[i][3][1]] # Size
         )
 
+    create_image("shop back", SHOP_MENU_IMAGES, "Images/arrow.png", (120, 570), transparent=True, scaling=[300, 300])
     create_image("table", SHOP_MENU_IMAGES, "Images/shop-table.png", (540, 560), transparent=True, scaling=[650, 650])
 
 
-def create_enemy(name: str, health: int, damage: int, sprite_path: str):
-    return {"name": name, "hp": health, "dmg": damage, "img": sprite_path}
+def create_enemy(health: int, damage: int, sprite_path: str):
+    return {"hp": health, "dmg": damage, "img": sprite_path}
+
+
+def tutorial_stage():
+    global FIGHT_MENU_TEXT, FIGHT_MENU_IMAGES, TEMP_ENEMIES
+
+    FIGHT_MENU_TEXT = {}
+    FIGHT_MENU_IMAGES = {}
+    TEMP_ENEMIES = {}
+
+    TEMP_ENEMIES.setdefault("Dummy", create_enemy(10, 0, "Images/amogus-ascended.png"))
+    
+    for enemy in TEMP_ENEMIES:
+        create_image("Dummy", FIGHT_MENU_IMAGES, TEMP_ENEMIES[enemy]["img"], (540, 360), transparent=True, scaling=[400, 400])
 
 
 def progress(old_enemy: dict) -> dict:
@@ -199,7 +227,7 @@ def progress(old_enemy: dict) -> dict:
     return new_enemy
 
 
-def battle(enemy: dict, player: dict, wave: int):
+def battle(enemy_stats: dict, player: dict, wave: int):
     """
     A function that runs a battle process between the user and an enemy.
     """
@@ -211,36 +239,37 @@ def battle(enemy: dict, player: dict, wave: int):
     dmg = player["damage"]
     defence = player["defence"]
     
-    enemy_hp = enemy["hp"]
-    enemy_dmg = enemy["dmg"]
+    enemy_hp = enemy_stats["hp"]
+    enemy_dmg = enemy_stats["dmg"]
 
     # Prints information about the boss
     print(f"Wave: {wave}")
-    print(f"You are about to fight {enemy['name']}!")
-    print(f"""{enemy['name']} statistics:
+    print(f"You are about to fight {enemy_stats['name']}!")
+    print(f"""{enemy_stats['name']} statistics:
 Health: {enemy_hp} 
 Damage: {enemy_dmg}""")
     ready = input("Press any key to start: ")
     print("--------------------------------------------------")
-
+    time_elapsed = 0
     # Loops through a fight until either party falls below 0 hp.
     while hp > 0 and enemy_hp > 0:
-        print()
-        if player['weapon'] != None:
-            damage_c = dmg * player["weapon"]["damage"]
-            enemy_hp = round((enemy_hp - damage_c), 2)
-        else:
-            enemy_hp = round((enemy_hp - dmg), 2)
+        downtime = clock.tick(30)
+        time_elapsed += downtime
+        if time_elapsed > 500:
+            time_elapsed = 0 
+            if player['weapon'] != None:
+                damage_c = dmg * player["weapon"]["damage"]
+                enemy_hp = round((enemy_hp - damage_c), 2)
+            else:
+                enemy_hp = round((enemy_hp - dmg), 2)
 
-        hp = round(hp - (enemy_dmg * (1 - (defence/10))), 2)
+            hp = round(hp - (enemy_dmg * (1 - (defence/10))), 2)
+            if enemy_hp < 0:
+                enemy_hp = 0
+            if hp < 0:
+                hp = 0
 
-        # Prevents hp from going below 0
-        if enemy_hp < 0:
-            enemy_hp = 0
-        if hp < 0:
-            hp = 0
-        
-        print(f"""{enemy['name']}'s Health: {enemy_hp} 
+            print(f"""{enemy_stats['name']}'s Health: {enemy_hp} 
 Your Health: {hp}
         """)
         
@@ -258,12 +287,20 @@ Your Health: {hp}
         dead = True
 
 
+def run_wave(wave: int):
+    """
+    Given an integer, <wave>, run the corresponding wave. 
+    """
+    if wave == 0:
+        tutorial_stage()
+
+
 #---------------Game Loop---------------# 
 
 
 def main():
 
-    global SCREEN_STATUS
+    global SCREEN_STATUS, wave
     SCREEN_STATUS = "MAIN"
 
     main_menu()
@@ -281,9 +318,6 @@ def main():
     # Actual Game Loop
     while running:
 
-        # Track which screen the player is on
-        current_screen = SCREEN_STATUS
-
         # User Interface
         if SCREEN_STATUS == "MAIN":
             TEXT = MAIN_MENU_TEXT
@@ -291,6 +325,9 @@ def main():
         elif SCREEN_STATUS == "SHOP":
             TEXT = SHOP_MENU_TEXT
             IMAGES = SHOP_MENU_IMAGES
+        elif SCREEN_STATUS == "FIGHT":
+            TEXT = FIGHT_MENU_TEXT
+            IMAGES = FIGHT_MENU_IMAGES
 
         # Track the (x, y) coordinates of the mouse
         # relative to the game window
@@ -306,13 +343,21 @@ def main():
 
                 print(mouse_pos)
 
-                # If SHOP button is clicked
-                if check_button_coords(mouse_pos, MAIN_MENU_TEXT["shop"][0], MAIN_MENU_TEXT["shop"][1]) == True and SCREEN_STATUS != "SHOP":
-                    SCREEN_STATUS = "SHOP"
+                # If FIGHT text or icon is clicked
+                if check_button_coords(mouse_pos, MAIN_MENU_TEXT["fight"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["fight"]) == True:
+                    if SCREEN_STATUS != "FIGHT":
+                        SCREEN_STATUS = "FIGHT"
+                        run_wave(wave)
+
+                # If SHOP text or icon is clicked
+                elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["shop"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["shop"]) == True:
+                    if SCREEN_STATUS != "SHOP":
+                        SCREEN_STATUS = "SHOP"
 
                 # If SHOP_BACK button is clicked
-                elif check_button_coords(mouse_pos, SHOP_MENU_IMAGES["table"][0], SHOP_MENU_IMAGES["table"][1]) == True and SCREEN_STATUS != "MAIN":
-                    SCREEN_STATUS = "MAIN"
+                elif check_button_coords(mouse_pos, SHOP_MENU_IMAGES["shop back"]) == True:
+                    if SCREEN_STATUS != "MAIN":
+                        SCREEN_STATUS = "MAIN"
 
 
         # Screen Updates:
@@ -324,6 +369,8 @@ def main():
             WIN.fill((255, 255, 228))
         elif SCREEN_STATUS == "SHOP":
             WIN.fill((133, 94, 66))
+        if SCREEN_STATUS == "FIGHT":
+            WIN.fill((124, 252, 0))
     
         # Render all text and images
         for text in TEXT:
