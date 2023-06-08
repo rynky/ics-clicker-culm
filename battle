@@ -1,0 +1,52 @@
+import pygame
+from pygame import time
+
+clock = pygame.time.Clock()
+
+def battle(enemy_stats: dict, player: dict, wave: int):
+    """
+    A function that runs a battle process between the user and an enemy.
+    """
+    
+    global dead
+
+    # Establishing temporary variables for the battle
+    hp = player["health"]
+    dmg = player["damage"]
+    defence = player["defence"]
+    
+    enemy_hp = enemy_stats["hp"]
+    enemy_dmg = enemy_stats["dmg"]
+
+    # Prints information about the boss
+    print(f"Wave: {wave}")
+    print(f"You are about to fight {enemy_stats['name']}!")
+    print(f"""{enemy_stats['name']} statistics:
+Health: {enemy_hp} 
+Damage: {enemy_dmg}""")
+    ready = input("Press any key to start: ")
+    print("--------------------------------------------------")
+    time_elapsed_since_last_action = 0
+    # Loops through a fight until either party falls below 0 hp.
+    while hp > 0 and enemy_hp > 0:
+        dt = clock.tick(30)
+        time_elapsed_since_last_action += dt
+        if time_elapsed_since_last_action > 500:
+            time_elapsed_since_last_action = 0 
+            if player['weapon'] != None:
+                damage_c = dmg * player["weapon"]["damage"]
+                enemy_hp = round((enemy_hp - damage_c), 2)
+            else:
+                enemy_hp = round((enemy_hp - dmg), 2)
+
+            hp = round(hp - (enemy_dmg * (1 - (defence/10))), 2)
+            if enemy_hp < 0:
+                enemy_hp = 0
+            if hp < 0:
+                hp = 0
+
+            print(f"""{enemy_stats['name']}'s Health: {enemy_hp} 
+Your Health: {hp}
+        """)
+        
+    print("--------------------------------------------------")
