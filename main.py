@@ -1,16 +1,16 @@
 # PyGame Imports and Initialization
 import pygame
 import pygame.display as display
+from random import randint
 pygame.init()
 
 """
-For this project, the <BUTTONS> dictionary will contain all the buttons and their icons.
-Each button entry will be stored as such:
+For this project, each menu will have its respective dictionaries.
 
-BUTTON_NAME : [BUTTON_OBJECT, BUTTON_COORDINATES]
+Each text entry will be stored as such:
+TEXT_NAME : [TEXT_OBJECT, TEXT_COORDINATES]
 
 Similarly, all images will be stored in various image dictionaries, for each screen.
-
 IMAGE_NAME : [IMAGE_OBJECT, IMAGE_COORDINATES]
 """
 MAIN_MENU_TEXT = {}
@@ -30,7 +30,7 @@ display.flip()  # Screen Update
 SCREEN_STATUS = "MAIN"  # Track which screen the user is on
 
 
-#-------------Text settings-------------# 
+#-----------IMPORTANT GLOBALS-----------# 
 
 """ 
 RGB Values:
@@ -40,6 +40,21 @@ Red = (255, 0, 0)
 Green = (0, 255, 0)
 Blue = (0, 0, 255)
 """
+ENEMYHP_SCALING = 1.2
+ENEMYDMG_SCALING = 1.1
+dead = False
+player = {
+    "health": 10, 
+    "damage": 1, 
+    "defence": 0, 
+    "gold": 0, 
+    "weapon": None, 
+    'seasoned': False, 
+    "chicken": False,
+    "sprite": "Images/chef-character.png"
+}
+wave = 0
+
 
 #---------------Functions---------------# 
 
@@ -113,6 +128,8 @@ def check_button_coords(coordinates: (int, int), button: pygame.font, button_coo
     BUTTON_WIDTH = button.get_width()
     BUTTON_HEIGHT = button.get_height()
     
+    print(button_coordinates[0], button_coordinates[1])
+
     # Checks if the x-coordinates match
     if button_coordinates[0] <= coordinates[0] <= button_coordinates[0] + BUTTON_WIDTH:
         
@@ -130,13 +147,13 @@ def main_menu():
 
     create_text("title", MAIN_MENU_TEXT, "Medieval Munchies", "Times New Roman", 64, (0, 0, 0), (540, 50))
 
-    create_image("player", MAIN_MENU_IMAGES, "Images/chef-character.png", (225, 360), transparent=True, scaling=[600, 600])
+    create_image("player", MAIN_MENU_IMAGES, player["sprite"], (225, 360), transparent=True, scaling=[600, 600])
 
     create_text("upgrade", MAIN_MENU_TEXT, "UPGRADE", "Times New Roman", 48, (219, 172, 52), (150+30, 630))
     create_image("upgrade", MAIN_MENU_IMAGES, "Images/anvil.png", (330+30, 635), transparent=True, scaling=[120, 120])
     
     create_text("fight", MAIN_MENU_TEXT, "FIGHT", "Times New Roman", 48, (255, 0, 0), (510+30, 630))
-    create_image("fight", MAIN_MENU_IMAGES, "Images/carrot-sword.png", (630+30, 630), transparent=True, scaling=[80, 80])
+    create_image("fight", MAIN_MENU_IMAGES, "Images/carrot-sword.png", (660, 630), transparent=True, scaling=[80, 80])
 
     create_text("shop", MAIN_MENU_TEXT, "SHOP", "Times New Roman", 48, (17, 140, 79), (790+30, 630))
     create_image("shop", MAIN_MENU_IMAGES, "Images/shopping-cart.png", (900+30, 630), transparent=True, scaling=[80, 80])
@@ -163,44 +180,140 @@ def shop_menu(items: list):
     create_image("table", SHOP_MENU_IMAGES, "Images/shop-table.png", (540, 560), transparent=True, scaling=[650, 650])
 
 
+def create_enemy(name: str, health: int, damage: int, sprite_path: str):
+    return {"name": name, "hp": health, "dmg": damage, "img": sprite_path}
+
+
+def progress(old_enemy: dict) -> dict:
+    """
+    A function that increases the difficulty of the game by increasing the stats of the enemy.
+    """
+    
+    new_enemy = {}
+    ENEMY_NAMES = ["Archer", "Knight", "Hunter", "a", "b", "c", "d"]
+
+    # Randomly chooses a basic enemy name and multiplies the hp and dmg of the enemy by a constant
+    new_enemy['name'] = ENEMY_NAMES[randint(0, len(ENEMY_NAMES)-1)]
+    new_enemy['hp'] = round((old_enemy['hp'] * ENEMYHP_SCALING), 2)
+    new_enemy['dmg'] = round((old_enemy['dmg'] * ENEMYDMG_SCALING), 1)
+    return new_enemy
+
+
+def battle(enemy: dict, player: dict, wave: int):
+    """
+    A function that runs a battle process between the user and an enemy.
+    """
+    
+    global dead
+
+    # Establishing temporary variables for the battle
+    hp = player["health"]
+    dmg = player["damage"]
+    defence = player["defence"]
+    
+    enemy_hp = enemy["hp"]
+    enemy_dmg = enemy["dmg"]
+
+    # Prints information about the boss
+    print(f"Wave: {wave}")
+    print(f"You are about to fight {enemy['name']}!")
+    print(f"""{enemy['name']} statistics:
+Health: {enemy_hp} 
+Damage: {enemy_dmg}""")
+    ready = input("Press any key to start: ")
+    print("--------------------------------------------------")
+
+    # Loops through a fight until either party falls below 0 hp.
+    while hp > 0 and enemy_hp > 0:
+        print()
+        if player['weapon'] != None:
+            damage_c = dmg * player["weapon"]["damage"]
+            enemy_hp = round((enemy_hp - damage_c), 2)
+        else:
+            enemy_hp = round((enemy_hp - dmg), 2)
+
+        hp = round(hp - (enemy_dmg * (1 - (defence/10))), 2)
+
+        # Prevents hp from going below 0
+        if enemy_hp < 0:
+            enemy_hp = 0
+        if hp < 0:
+            hp = 0
+        
+        print(f"""{enemy['name']}'s Health: {enemy_hp} 
+Your Health: {hp}
+        """)
+        
+    print("--------------------------------------------------")
+
+    # Checks the result of the battle and rewards the player accordingly
+    if hp == 0 and enemy_hp == 0:
+        print(f"You and the enemy simultaneously collapsed. You got away but couldn't safely pick up the gold.")
+    elif hp > 0:
+        gold_dropped = randint(1,1)
+        print(f"You won! You gain {gold_dropped} gold!")
+        player["gold"] += gold_dropped
+    else:
+        print("You died :(")
+        dead = True
+
+
 #---------------Game Loop---------------# 
 
 
 def main():
 
     global SCREEN_STATUS
-    SCREEN_STATUS = "SHOP"
+    SCREEN_STATUS = "MAIN"
+
+    main_menu()
+    shop_menu([
+                ["cs", "Images/chopstick.png", (125, 100), [200,200]],
+                ["fp", "Images/frying-pan.png", (750, 100), [200,200]],
+                ["kf", "Images/knife.png", (485, 100), [300,300]],
+                ["sp", "Images/spatula.png", (250, 100), [300, 300]]
+            ])
         
     # Important flags and accumulators
     clicks = 0
     running = True
 
-    # User Interface
-    if SCREEN_STATUS == "MAIN":
-        TEXT, IMAGES = MAIN_MENU_IMAGES, MAIN_MENU_TEXT
-        main_menu()
-    elif SCREEN_STATUS == "SHOP":
-        TEXT, IMAGES = SHOP_MENU_IMAGES, SHOP_MENU_TEXT
-        shop_menu([
-            ["cs", "Images/chopstick.png", (125, 100), [200,200]],
-            ["fp", "Images/frying-pan.png", (750, 100), [200,200]],
-            ["kf", "Images/knife.png", (485, 100), [300,300]],
-            ["sp", "Images/spatula.png", (250, 100), [300, 300]]
-        ])
-
-
     # Actual Game Loop
     while running:
+
+        # Track which screen the player is on
+        current_screen = SCREEN_STATUS
+
+        # User Interface
+        if SCREEN_STATUS == "MAIN":
+            TEXT = MAIN_MENU_TEXT
+            IMAGES = MAIN_MENU_IMAGES
+        elif SCREEN_STATUS == "SHOP":
+            TEXT = SHOP_MENU_TEXT
+            IMAGES = SHOP_MENU_IMAGES
+
+        # Track the (x, y) coordinates of the mouse
+        # relative to the game window
+        mouse_pos = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
 
             # Closing the window ends the game
             if event.type == pygame.QUIT:
                 running = False
-        
-        # Track the (x, y) coordinates of the mouse
-        # relative to the game window
-        mouse_pos = pygame.mouse.get_pos()
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+
+                print(mouse_pos)
+
+                # If SHOP button is clicked
+                if check_button_coords(mouse_pos, MAIN_MENU_TEXT["shop"][0], MAIN_MENU_TEXT["shop"][1]) == True and SCREEN_STATUS != "SHOP":
+                    SCREEN_STATUS = "SHOP"
+
+                # If SHOP_BACK button is clicked
+                elif check_button_coords(mouse_pos, SHOP_MENU_IMAGES["table"][0], SHOP_MENU_IMAGES["table"][1]) == True and SCREEN_STATUS != "MAIN":
+                    SCREEN_STATUS = "MAIN"
+
 
         # Screen Updates:
 
@@ -212,8 +325,6 @@ def main():
         elif SCREEN_STATUS == "SHOP":
             WIN.fill((133, 94, 66))
     
-
-        
         # Render all text and images
         for text in TEXT:
             WIN.blit(TEXT[text][0], TEXT[text][1])
