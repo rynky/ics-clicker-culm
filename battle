@@ -26,16 +26,16 @@ Health: {enemy_hp}
 Damage: {enemy_dmg}""")
     ready = input("Press any key to start: ")
     print("--------------------------------------------------")
-    time_elapsed_since_last_action = 0
+    time_elapsed = 0
     
     
     # Loops through a fight until either party falls below 0 hp.
     while hp > 0 and enemy_hp > 0:
-        dt = clock.tick(30)
-        time_elapsed_since_last_action += dt
+        downtime = clock.tick(30)
+        time_elapsed += downtime
         
-        if time_elapsed_since_last_action > 500:
-            time_elapsed_since_last_action = 0 
+        if time_elapsed > 500:
+            time_elapsed = 0 
             if player['weapon'] != None:
                 damage_c = dmg * player["weapon"]["damage"]
                 enemy_hp = round((enemy_hp - damage_c), 2)
