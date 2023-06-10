@@ -154,6 +154,32 @@ def check_button_coords(coordinates: (int, int), button: dict) -> bool:
     return False
 
 
+def manage_music(volume: float=0.05):
+    """
+    By accessing the current screen that the user is on using the global variable 
+    <SCREEN_STATUS>, manage what music is played and adjust its volume through the 
+    <volume> parameter, which is defaulted to 0.25.
+    """
+
+    global SCREEN_STATUS, wave
+
+    # Stop the previous music
+    pygame.mixer.music.stop()
+    pygame.mixer.music.unload()
+
+    # Access the music file PATH
+    if SCREEN_STATUS == "MAIN":
+        pygame.mixer.music.load("Music/main-menu-theme.mp3")
+    if SCREEN_STATUS == "SHOP":
+        pygame.mixer.music.load("Music/shop-theme.mp3")
+    if SCREEN_STATUS == "FIGHT":
+        pygame.mixer.music.load("Music/battle-theme-1.mp3")
+
+    # Set the volume and play
+    pygame.mixer.music.set_volume(volume)
+    pygame.mixer.music.play()
+
+
 def main_menu():
     """
     Display the main menu in its entirety with all its text and images.
@@ -195,21 +221,24 @@ def shop_menu(items: list):
     create_image("table", SHOP_MENU_IMAGES, "Images/shop-table.png", (540, 560), transparent=True, scaling=[650, 650])
 
 
-def create_enemy(health: int, damage: int, sprite_path: str):
-    return {"hp": health, "dmg": damage, "img": sprite_path}
+def create_enemy(name: str, health: int, damage: int, sprite_path: str):
+    return {"name": name, "hp": health, "dmg": damage, "img": sprite_path}
 
 
 def tutorial_stage():
+
     global FIGHT_MENU_TEXT, FIGHT_MENU_IMAGES, TEMP_ENEMIES
+    global player, wave
 
     FIGHT_MENU_TEXT = {}
     FIGHT_MENU_IMAGES = {}
     TEMP_ENEMIES = {}
 
-    TEMP_ENEMIES.setdefault("Dummy", create_enemy(10, 0, "Images/amogus-ascended.png"))
-    
-    for enemy in TEMP_ENEMIES:
-        create_image("Dummy", FIGHT_MENU_IMAGES, TEMP_ENEMIES[enemy]["img"], (540, 360), transparent=True, scaling=[400, 400])
+    enemy_object = create_enemy("Dummy", 10, 0, "Images/amogus-ascended.png")
+    TEMP_ENEMIES[enemy_object["name"]] = enemy_object 
+        
+
+
 
 
 def progress(old_enemy: dict) -> dict:
@@ -232,24 +261,29 @@ def battle(enemy_stats: dict, player: dict, wave: int):
     A function that runs a battle process between the user and an enemy.
     """
     
+    global FIGHT_MENU_IMAGES, FIGHT_MENU_TEXT, TEMP_ENEMIES
     global dead
 
-    # Establishing temporary variables for the battle
-    hp = player["health"]
-    dmg = player["damage"]
-    defence = player["defence"]
-    
-    enemy_hp = enemy_stats["hp"]
-    enemy_dmg = enemy_stats["dmg"]
 
-    # Prints information about the boss
-    print(f"Wave: {wave}")
-    print(f"You are about to fight {enemy_stats['name']}!")
-    print(f"""{enemy_stats['name']} statistics:
-Health: {enemy_hp} 
-Damage: {enemy_dmg}""")
-    ready = input("Press any key to start: ")
-    print("--------------------------------------------------")
+    # Put the user in the battle loop
+    in_battle = True
+    while in_battle:
+        
+        # Render all text and images
+        WIN.fill((124, 252, 0))
+        for text in FIGHT_MENU_TEXT:
+            WIN.blit(FIGHT_MENU_TEXT[text][0], FIGHT_MENU_TEXT[text][1])
+        for image in FIGHT_MENU_IMAGES:
+            WIN.blit(FIGHT_MENU_IMAGES[image][0], FIGHT_MENU_IMAGES[image][1])
+        
+        # Print the stats of the enemy
+        print(f"You are about to fight {enemy_name}!")
+        print(f"{enemy_name}'s stats:")
+        input()
+
+
+
+    """
     time_elapsed = 0
     # Loops through a fight until either party falls below 0 hp.
     while hp > 0 and enemy_hp > 0:
@@ -269,9 +303,7 @@ Damage: {enemy_dmg}""")
             if hp < 0:
                 hp = 0
 
-            print(f"""{enemy_stats['name']}'s Health: {enemy_hp} 
-Your Health: {hp}
-        """)
+            print(f"{enemy_stats['name']}'s Health: {enemy_hp}\n Your Health: {hp}")
         
     print("--------------------------------------------------")
 
@@ -285,14 +317,7 @@ Your Health: {hp}
     else:
         print("You died :(")
         dead = True
-
-
-def run_wave(wave: int):
     """
-    Given an integer, <wave>, run the corresponding wave. 
-    """
-    if wave == 0:
-        tutorial_stage()
 
 
 #---------------Game Loop---------------# 
@@ -301,8 +326,15 @@ def run_wave(wave: int):
 def main():
 
     global SCREEN_STATUS, wave
-    SCREEN_STATUS = "MAIN"
+    global TEMP_ENEMIES
 
+    # Initialize the game for the first playthrough
+    SCREEN_STATUS = "MAIN"
+    wave = 0
+    # manage_music()
+
+    # Initialize the images and text for each menu
+    # via their respective functions
     main_menu()
     shop_menu([
                 ["cs", "Images/chopstick.png", (125, 100), [200,200]],
@@ -315,6 +347,7 @@ def main():
     clicks = 0
     running = True
 
+
     # Actual Game Loop
     while running:
 
@@ -322,12 +355,16 @@ def main():
         if SCREEN_STATUS == "MAIN":
             TEXT = MAIN_MENU_TEXT
             IMAGES = MAIN_MENU_IMAGES
+            
         elif SCREEN_STATUS == "SHOP":
             TEXT = SHOP_MENU_TEXT
             IMAGES = SHOP_MENU_IMAGES
+
         elif SCREEN_STATUS == "FIGHT":
             TEXT = FIGHT_MENU_TEXT
             IMAGES = FIGHT_MENU_IMAGES
+        
+        
 
         # Track the (x, y) coordinates of the mouse
         # relative to the game window
@@ -342,22 +379,32 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
 
                 print(mouse_pos)
+                current_enemy = ""
 
                 # If FIGHT text or icon is clicked
                 if check_button_coords(mouse_pos, MAIN_MENU_TEXT["fight"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["fight"]) == True:
                     if SCREEN_STATUS != "FIGHT":
                         SCREEN_STATUS = "FIGHT"
-                        run_wave(wave)
+                        # manage_music()
+                        if wave == 0:
+                            create_image("dummy", FIGHT_MENU_IMAGES, "Images/amogus-ascended.png", (540, 360), transparent=True, scaling=[400, 400])
+                            current_enemy = "dummy"
+
+                if SCREEN_STATUS == "FIGHT":
+                    if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES["dummy"]) == True:
+                        print("You clicked on the fight screen!")
 
                 # If SHOP text or icon is clicked
                 elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["shop"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["shop"]) == True:
                     if SCREEN_STATUS != "SHOP":
                         SCREEN_STATUS = "SHOP"
+                        # manage_music()
 
                 # If SHOP_BACK button is clicked
                 elif check_button_coords(mouse_pos, SHOP_MENU_IMAGES["shop back"]) == True:
                     if SCREEN_STATUS != "MAIN":
                         SCREEN_STATUS = "MAIN"
+                        # manage_music()
 
 
         # Screen Updates:
