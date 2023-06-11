@@ -23,6 +23,10 @@ SHOP_MENU_IMAGES = {}
 
 FIGHT_MENU_TEXT = {}
 FIGHT_MENU_IMAGES = {}
+
+UPGRADE_MENU_TEXT = {}
+UPGRADE_MENU_IMAGES = {}
+
 # Work as Random Access storage for battle stages
 # This dictionary will contain the enemies in each stage
 # It may be altered at the convenience of the specific stage 
@@ -198,6 +202,45 @@ def main_menu():
     create_text("shop", MAIN_MENU_TEXT, "SHOP", "Times New Roman", 48, (17, 140, 79), (790+30, 630))
     create_image("shop", MAIN_MENU_IMAGES, "Images/shopping-cart.png", (900+30, 630), transparent=True, scaling=[80, 80])
 
+def upgrade_menu(stats: list):
+    """
+    Given a list <stats> that contains elements in the format [name, path, coords, scale], 
+    render each item to the upgrade menu.
+    """
+
+    global UPGRADE_MENU_TEXT, UPGRADE_MENU_IMAGES, WIDTH
+    stats_info = {'health': {'cost': 1, 'increment': 2}, 'defence': {'cost': 1, 'increment': 1, 'max': 5}, 'damage': {'cost': 2, 'increment': 1}}
+
+    for i in range(len(stats)):
+        create_image(
+            stats[i][0], # Name 
+            UPGRADE_MENU_IMAGES, # Location (Dictionary)
+            stats[i][1], # Path
+            (stats[i][2][0], stats[i][2][1]), # Coordinates
+            transparent=True, # Transparency
+            scaling=[stats[i][3][0], stats[i][3][1]] # Size
+        )
+
+        create_image(
+            stats[i][0]+"_button", # Name 
+            UPGRADE_MENU_IMAGES, # Location (Dictionary)
+            "Images/plus.png", # Path
+            (stats[i][2][0] + 200, stats[i][2][1]), # Coordinates
+            transparent=True, # Transparency
+            scaling=[stats[i][3][0]-100, stats[i][3][1]-100] # Size
+        )
+        
+        create_text(
+            stats[i][0]+"_desc", 
+            UPGRADE_MENU_TEXT, 
+            "cost: " + str(stats_info[stats[i][0]]["cost"]),
+            "Times New Roman", 
+            48, 
+            (0, 0, 0), 
+            (stats[i][2][0]+350, stats[i][2][1])   
+        )
+    
+    create_image("upgrade_back", UPGRADE_MENU_IMAGES, "Images/arrow.png", (110, 80), transparent=True, scaling=[300, 300])
 
 def shop_menu(items: list):
     """
@@ -206,6 +249,13 @@ def shop_menu(items: list):
     """
 
     global SHOP_MENU_TEXT, SHOP_MENU_IMAGES, WIDTH
+
+    weapons = [
+        {"name": "Chopsticks", "cost": 5, "damage": 2},
+        {"name": "Spatula", "cost": 8, "damage": 3},
+        {"name": "Knife", "cost": 10, "damage": 4},
+        {"name": "Frying Pan", "cost": 12, "damage": 5}
+        ]
 
     for i in range(len(items)):
         create_image(
@@ -217,7 +267,17 @@ def shop_menu(items: list):
             scaling=[items[i][3][0], items[i][3][1]] # Size
         )
 
-    create_image("shop back", SHOP_MENU_IMAGES, "Images/arrow.png", (120, 570), transparent=True, scaling=[300, 300])
+        create_text(
+            items[i][0]+"_desc", 
+            SHOP_MENU_TEXT, 
+            weapons[i]["name"] + ": $" + str(weapons[i]["cost"]) + ", " + str(weapons[i]["damage"]) + "dmg", 
+            "Times New Roman", 
+            30, 
+            (0, 0, 0), 
+            (items[i][2][0], items[i][2][1]-150)
+        )
+
+    create_image("shop_back", SHOP_MENU_IMAGES, "Images/arrow.png", (110, 80), transparent=True, scaling=[300, 300])
     create_image("table", SHOP_MENU_IMAGES, "Images/shop-table.png", (540, 560), transparent=True, scaling=[650, 650])
 
 
@@ -337,10 +397,16 @@ def main():
     # via their respective functions
     main_menu()
     shop_menu([
-                ["cs", "Images/chopstick.png", (125, 100), [200,200]],
-                ["fp", "Images/frying-pan.png", (750, 100), [200,200]],
-                ["kf", "Images/knife.png", (485, 100), [300,300]],
-                ["sp", "Images/spatula.png", (250, 100), [300, 300]]
+                ["cs", "Images/chopstick.png", (200, 320), [225,225]],
+                ["sp", "Images/spatula.png", (415, 280), [335, 335]],
+                ["kf", "Images/knife.png", (665, 280), [335,335]],
+                ["fp", "Images/frying-pan.png", (900, 320), [225,225]]
+
+            ])
+    upgrade_menu([
+                ["health", "Images/heart.png", (100, 300), [200,200]],
+                ["defence", "Images/shield.png", (100, 450), [200,200]],
+                ["damage", "Images/sword.png", (100, 600), [200,200]]
             ])
         
     # Important flags and accumulators
@@ -364,8 +430,10 @@ def main():
             TEXT = FIGHT_MENU_TEXT
             IMAGES = FIGHT_MENU_IMAGES
         
+        elif SCREEN_STATUS == "UPGRADE":
+            TEXT = UPGRADE_MENU_TEXT
+            IMAGES = UPGRADE_MENU_IMAGES
         
-
         # Track the (x, y) coordinates of the mouse
         # relative to the game window
         mouse_pos = pygame.mouse.get_pos()
@@ -381,30 +449,82 @@ def main():
                 print(mouse_pos)
                 current_enemy = ""
 
+                # Function for each menu
+                if SCREEN_STATUS == "MAIN":
+                    if check_button_coords(mouse_pos, MAIN_MENU_TEXT["fight"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["fight"]) == True:
+                        SCREEN_STATUS = "FIGHT"
+                    elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["shop"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["shop"]) == True:
+                        SCREEN_STATUS = "SHOP"
+                    elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["upgrade"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["upgrade"]) == True:
+                        SCREEN_STATUS = "UPGRADE"
+
+
+                if SCREEN_STATUS == "FIGHT":
+                    if wave == 0:
+                        create_image("dummy", FIGHT_MENU_IMAGES, "Images/amogus-ascended.png", (540, 360), transparent=True, scaling=[400, 400])
+                        current_enemy = "dummy"
+                    if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES["dummy"]) == True:
+                        print("You clicked on the fight screen!")
+
+                elif SCREEN_STATUS == "SHOP":
+                    if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["shop_back"]) == True:
+                        SCREEN_STATUS = "MAIN"
+
+                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["health_button"]) == True:
+                        print("You upgraded your hp!")
+                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["defence_button"]) == True:
+                        print("You upgraded your def!")
+                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["damage_button"]) == True:
+                        print("You upgraded your atk!")
+
+                elif SCREEN_STATUS == "UPGRADE":
+                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["upgrade_back"]) == True:
+                        SCREEN_STATUS = "MAIN"
+                    
+                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["health_button"]) == True:
+                        print("You upgraded your hp!")
+                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["defence_button"]) == True:
+                        print("You upgraded your def!")
+                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["damage_button"]) == True:
+                        print("You upgraded your atk!")
+
+
+
+
+
+                # Swapping Menus
                 # If FIGHT text or icon is clicked
+                """
                 if check_button_coords(mouse_pos, MAIN_MENU_TEXT["fight"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["fight"]) == True:
-                    if SCREEN_STATUS != "FIGHT":
+                    if SCREEN_STATUS == "MAIN":
                         SCREEN_STATUS = "FIGHT"
                         # manage_music()
                         if wave == 0:
                             create_image("dummy", FIGHT_MENU_IMAGES, "Images/amogus-ascended.png", (540, 360), transparent=True, scaling=[400, 400])
                             current_enemy = "dummy"
 
-                if SCREEN_STATUS == "FIGHT":
-                    if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES["dummy"]) == True:
-                        print("You clicked on the fight screen!")
-
                 # If SHOP text or icon is clicked
                 elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["shop"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["shop"]) == True:
-                    if SCREEN_STATUS != "SHOP":
+                    if SCREEN_STATUS == "MAIN":
                         SCREEN_STATUS = "SHOP"
                         # manage_music()
 
                 # If SHOP_BACK button is clicked
-                elif check_button_coords(mouse_pos, SHOP_MENU_IMAGES["shop back"]) == True:
-                    if SCREEN_STATUS != "MAIN":
+                elif check_button_coords(mouse_pos, SHOP_MENU_IMAGES["shop_back"]) == True:
+                    if SCREEN_STATUS == "SHOP":
                         SCREEN_STATUS = "MAIN"
                         # manage_music()
+
+                if check_button_coords(mouse_pos, MAIN_MENU_TEXT["upgrade"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["upgrade"]) == True:
+                    if SCREEN_STATUS == "MAIN":
+                        SCREEN_STATUS = "UPGRADE"
+
+                if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["upgrade_back"]) == True:
+                    if SCREEN_STATUS == "UPGRADE":
+                        SCREEN_STATUS = "MAIN"
+                        # manage_music()
+                """
+
 
 
         # Screen Updates:
@@ -418,7 +538,9 @@ def main():
             WIN.fill((133, 94, 66))
         if SCREEN_STATUS == "FIGHT":
             WIN.fill((124, 252, 0))
-    
+        if SCREEN_STATUS == "UPGRADE":
+            WIN.fill((124, 0, 200))
+
         # Render all text and images
         for text in TEXT:
             WIN.blit(TEXT[text][0], TEXT[text][1])
