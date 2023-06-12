@@ -55,13 +55,20 @@ Blue = (0, 0, 255)
 """
 ENEMYHP_SCALING = 1.2
 ENEMYDMG_SCALING = 1.1
+in_battle = False
 dead = False
 player = {
     "health": 10, 
     "damage": 1, 
     "defence": 0, 
     "gold": 10, 
-    "weapon": None, 
+    
+    # The spoon has a damage of 1
+    "weapon": "Spoon",
+
+    # weapon multiplier = 1 + (weapon_damage - 1)/4
+    "weapon_multiplier": 1,
+    
     'seasoned': False, 
     "chicken": False,
     "sprite": "Images/chef-character.png"
@@ -126,11 +133,8 @@ def create_image(name: str,
         image_object = pygame.transform.scale(image_object, (scaling[0], scaling[1]))
 
     # Add the image to the dictionary
-    if name not in screen:
-        # Ensures that the coordinates are interpreted based on the center of the image
-        screen.setdefault(name, [image_object, (image_coordinates[0] - image_object.get_width()/2, image_coordinates[1] - image_object.get_height()/2)])
-    else:
-        screen[name] = [image_object, image_coordinates]
+    # Ensures that the coordinates are interpreted based on the center of the image
+    screen[name] = [image_object, (image_coordinates[0] - image_object.get_width()/2, image_coordinates[1] - image_object.get_height()/2)]
     
 
 
@@ -147,8 +151,6 @@ def check_button_coords(coordinates: (int, int), button: dict) -> bool:
 
     BUTTON_WIDTH = button_object.get_width()
     BUTTON_HEIGHT = button_object.get_height()
-    
-    print(button_coordinates[0], button_coordinates[1])
 
     # Checks if the x-coordinates match
     if button_coordinates[0] <= coordinates[0] <= button_coordinates[0] + BUTTON_WIDTH:
@@ -281,8 +283,8 @@ def shop_menu(items: list):
     create_image("table", SHOP_MENU_IMAGES, "Images/shop-table.png", (540, 560), transparent=True, scaling=[650, 650])
 
 
-def create_enemy(name: str, health: int, damage: int, sprite_path: str):
-    return {"name": name, "hp": health, "dmg": damage, "img": sprite_path}
+def create_enemy(name: str, health: int, damage: int):
+    TEMP_ENEMIES[name] = {"hp": health, "dmg": damage}
 
 
 def tutorial_stage():
@@ -335,7 +337,7 @@ def battle(enemy_stats: dict, player: dict, wave: int):
             WIN.blit(FIGHT_MENU_TEXT[text][0], FIGHT_MENU_TEXT[text][1])
         for image in FIGHT_MENU_IMAGES:
             WIN.blit(FIGHT_MENU_IMAGES[image][0], FIGHT_MENU_IMAGES[image][1])
-        
+    
         # Print the stats of the enemy
         print(f"You are about to fight {enemy_name}!")
         print(f"{enemy_name}'s stats:")
@@ -386,13 +388,13 @@ def battle(enemy_stats: dict, player: dict, wave: int):
 def main():
 
     global SCREEN_STATUS, wave, weapons
-    global TEMP_ENEMIES
+    global TEMP_ENEMIES, in_battle
 
     weapons = {
-        "Chopsticks": {"cost": 5, "damage": 1},
-        "Spatula": {"cost": 8, "damage": 2},
-        "Knife": {"cost": 10, "damage": 3},
-        "Frying Pan": {"cost": 12, "damage": 4}
+        "Chopsticks": {"cost": 5, "damage": 2},
+        "Spatula": {"cost": 8, "damage": 3},
+        "Knife": {"cost": 10, "damage": 4},
+        "Frying Pan": {"cost": 12, "damage": 5}
     }
     
     # Initialize the game for the first playthrough
@@ -452,8 +454,6 @@ def main():
                 running = False
             
             if event.type == pygame.MOUSEBUTTONDOWN:
-
-                print(mouse_pos)
                 current_enemy = ""
 
                 # Function for each menu
@@ -467,11 +467,49 @@ def main():
 
 
                 if SCREEN_STATUS == "FIGHT":
+
                     if wave == 0:
-                        create_image("dummy", FIGHT_MENU_IMAGES, "Images/amogus-ascended.png", (540, 360), transparent=True, scaling=[400, 400])
-                        current_enemy = "dummy"
-                    if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES["dummy"]) == True:
-                        print("You clicked on the fight screen!")
+                        
+                        if in_battle == False:
+                            
+                            # Reset the menu images and text
+                            FIGHT_MENU_IMAGES = {}
+                            FIGHT_MENU_TEXT = {}
+
+                            create_image("dummy", FIGHT_MENU_IMAGES, "Images/amogus-ascended.png", (540, 360), transparent=True, scaling=[400, 400])
+                            create_enemy("dummy", 10, 0)
+
+                            # Create temporary variables for the battle
+                            player_hp = player["health"]
+
+                            enemy_hp = TEMP_ENEMIES["dummy"]["hp"]
+                            enemy_dmg = TEMP_ENEMIES["dummy"]["dmg"]
+
+                            in_battle = True
+                            print(f"Enemy Health: {enemy_hp}")
+                        
+                        else:
+
+                            if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES["dummy"]) == True:
+                                    
+                                player_damage = player['damage'] * player['weapon_multiplier']
+                                enemy_hp -= player_damage
+
+                                if enemy_hp <= 0 or player_hp <= 0:
+                                    enemy_hp = 0
+                                    in_battle = False
+                                    SCREEN_STATUS = "MAIN"
+                                    wave += 1
+
+                                print(f"\nYou did {player_damage} damage!")
+                                print(f"Enemy Health: {enemy_hp}")
+
+
+                    elif wave % 5 == 0:
+                        print("Boss")
+
+                    elif wave % 10 == 3 or wave % 10 == 8:
+                        print("Random Event")
 
                 elif SCREEN_STATUS == "SHOP":
                     shop_choice = None
@@ -493,8 +531,9 @@ def main():
                         elif player['gold'] < weapons[shop_choice]["cost"]:
                             create_text("buy_note", SHOP_MENU_TEXT, "You cannot afford to buy: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
                         else:    
-                            player["weapon"] = weapons[shop_choice]
+                            player["weapon"] = shop_choice
                             player['gold'] -= weapons[shop_choice]["cost"]
+                            player["weapon_multiplier"] = 1 + (weapons[shop_choice]["damage"] - 1)/4
                             weapons[shop_choice]["cost"] = "SOLD :("
                             create_text("buy_note", SHOP_MENU_TEXT, "You successfully bought: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
       
