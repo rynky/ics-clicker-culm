@@ -60,13 +60,15 @@ player = {
     "health": 10, 
     "damage": 1, 
     "defence": 0, 
-    "gold": 0, 
+    "gold": 10, 
     "weapon": None, 
     'seasoned': False, 
     "chicken": False,
     "sprite": "Images/chef-character.png"
 }
+STATS_INFO = {'health': {'cost': 1, 'increment': 2}, 'defence': {'cost': 1, 'increment': 1, 'max': 5}, 'damage': {'cost': 2, 'increment': 1}}
 wave = 0
+
 
 
 #---------------Functions---------------# 
@@ -202,6 +204,9 @@ def main_menu():
     create_text("shop", MAIN_MENU_TEXT, "SHOP", "Times New Roman", 48, (17, 140, 79), (790+30, 630))
     create_image("shop", MAIN_MENU_IMAGES, "Images/shopping-cart.png", (900+30, 630), transparent=True, scaling=[80, 80])
 
+    create_image("gold", MAIN_MENU_IMAGES, "Images/coin.png", (900,75), transparent=True, scaling=[100,100])
+    create_text("gold_count", MAIN_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75))
+
 def upgrade_menu(stats: list):
     """
     Given a list <stats> that contains elements in the format [name, path, coords, scale], 
@@ -209,7 +214,6 @@ def upgrade_menu(stats: list):
     """
 
     global UPGRADE_MENU_TEXT, UPGRADE_MENU_IMAGES, WIDTH
-    stats_info = {'health': {'cost': 1, 'increment': 2}, 'defence': {'cost': 1, 'increment': 1, 'max': 5}, 'damage': {'cost': 2, 'increment': 1}}
 
     for i in range(len(stats)):
         create_image(
@@ -233,13 +237,14 @@ def upgrade_menu(stats: list):
         create_text(
             stats[i][0]+"_desc", 
             UPGRADE_MENU_TEXT, 
-            "cost: " + str(stats_info[stats[i][0]]["cost"]),
+            "cost: " + str(STATS_INFO[stats[i][0]]["cost"]),
             "Times New Roman", 
             48, 
             (0, 0, 0), 
             (stats[i][2][0]+350, stats[i][2][1])   
         )
-    
+
+    create_image("gold", UPGRADE_MENU_IMAGES, "Images/coin.png", (900,75), transparent=True, scaling=[100,100])
     create_image("upgrade_back", UPGRADE_MENU_IMAGES, "Images/arrow.png", (110, 80), transparent=True, scaling=[300, 300])
 
 def shop_menu(items: list):
@@ -249,13 +254,7 @@ def shop_menu(items: list):
     """
 
     global SHOP_MENU_TEXT, SHOP_MENU_IMAGES, WIDTH
-
-    weapons = [
-        {"name": "Chopsticks", "cost": 5, "damage": 2},
-        {"name": "Spatula", "cost": 8, "damage": 3},
-        {"name": "Knife", "cost": 10, "damage": 4},
-        {"name": "Frying Pan", "cost": 12, "damage": 5}
-        ]
+    weapon_names = ["Chopsticks", "Spatula", "Knife", "Frying Pan"]
 
     for i in range(len(items)):
         create_image(
@@ -270,13 +269,14 @@ def shop_menu(items: list):
         create_text(
             items[i][0]+"_desc", 
             SHOP_MENU_TEXT, 
-            weapons[i]["name"] + ": $" + str(weapons[i]["cost"]) + ", " + str(weapons[i]["damage"]) + "dmg", 
+            weapon_names[i] + ": $" + str(weapons[weapon_names[i]]["cost"]) + ", " + str(weapons[weapon_names[i]]["damage"]) + "dmg", 
             "Times New Roman", 
             30, 
             (0, 0, 0), 
             (items[i][2][0], items[i][2][1]-150)
         )
 
+    create_image("gold", SHOP_MENU_IMAGES, "Images/coin.png", (900,75), transparent=True, scaling=[100,100])
     create_image("shop_back", SHOP_MENU_IMAGES, "Images/arrow.png", (110, 80), transparent=True, scaling=[300, 300])
     create_image("table", SHOP_MENU_IMAGES, "Images/shop-table.png", (540, 560), transparent=True, scaling=[650, 650])
 
@@ -385,9 +385,16 @@ def battle(enemy_stats: dict, player: dict, wave: int):
 
 def main():
 
-    global SCREEN_STATUS, wave
+    global SCREEN_STATUS, wave, weapons
     global TEMP_ENEMIES
 
+    weapons = {
+        "Chopsticks": {"cost": 5, "damage": 1},
+        "Spatula": {"cost": 8, "damage": 2},
+        "Knife": {"cost": 10, "damage": 3},
+        "Frying Pan": {"cost": 12, "damage": 4}
+    }
+    
     # Initialize the game for the first playthrough
     SCREEN_STATUS = "MAIN"
     wave = 0
@@ -421,7 +428,7 @@ def main():
         if SCREEN_STATUS == "MAIN":
             TEXT = MAIN_MENU_TEXT
             IMAGES = MAIN_MENU_IMAGES
-            
+
         elif SCREEN_STATUS == "SHOP":
             TEXT = SHOP_MENU_TEXT
             IMAGES = SHOP_MENU_IMAGES
@@ -467,65 +474,67 @@ def main():
                         print("You clicked on the fight screen!")
 
                 elif SCREEN_STATUS == "SHOP":
+                    shop_choice = None
                     if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["shop_back"]) == True:
                         SCREEN_STATUS = "MAIN"
 
-                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["health_button"]) == True:
-                        print("You upgraded your hp!")
-                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["defence_button"]) == True:
-                        print("You upgraded your def!")
-                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["damage_button"]) == True:
-                        print("You upgraded your atk!")
+                    if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["cs"]) == True:
+                        shop_choice = "Chopsticks"
+                    if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["sp"]) == True:
+                        shop_choice = "Spatula"
+                    if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["kf"]) == True:
+                        shop_choice = "Knife"
+                    if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["fp"]) == True:
+                        shop_choice = "Frying Pan"
+
+                    if shop_choice in weapons.keys():
+                        if weapons[shop_choice]["cost"] == "SOLD :(":
+                            create_text("buy_note", SHOP_MENU_TEXT, "You already bought: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
+                        elif player['gold'] < weapons[shop_choice]["cost"]:
+                            create_text("buy_note", SHOP_MENU_TEXT, "You cannot afford to buy: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
+                        else:    
+                            player["weapon"] = weapons[shop_choice]
+                            player['gold'] -= weapons[shop_choice]["cost"]
+                            weapons[shop_choice]["cost"] = "SOLD :("
+                            create_text("buy_note", SHOP_MENU_TEXT, "You successfully bought: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
+      
 
                 elif SCREEN_STATUS == "UPGRADE":
+                    upgrade_choice = None
+
                     if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["upgrade_back"]) == True:
                         SCREEN_STATUS = "MAIN"
-                    
-                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["health_button"]) == True:
-                        print("You upgraded your hp!")
-                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["defence_button"]) == True:
-                        print("You upgraded your def!")
-                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["damage_button"]) == True:
-                        print("You upgraded your atk!")
+                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["health_button"]) == True:
+                        upgrade_choice = "health"
+                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["defence_button"]) == True:
+                        upgrade_choice = "defence"
+                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["damage_button"]) == True:
+                        upgrade_choice = "damage"
+
+                    if upgrade_choice in player.keys():
+                        if player["gold"] >= STATS_INFO[upgrade_choice]["cost"]:
+                            if upgrade_choice == "defence":
+                                if player["defence"] >= STATS_INFO['defence']['max']:
+                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "Defence is maxed!", "Times New Roman", 48, (0, 0, 0), (540, 75))
+                                else:
+                                    player[upgrade_choice] += STATS_INFO[upgrade_choice]['increment']
+                                    player["gold"] -= STATS_INFO[upgrade_choice]['cost']
+                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 75))    
+                            else:
+                                player[upgrade_choice] += STATS_INFO[upgrade_choice]['increment']
+                                player["gold"] -= STATS_INFO[upgrade_choice]['cost']
+                                create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 75))   
+                
+                        else:
+                            create_text("upgrade_note", UPGRADE_MENU_TEXT, "You don't have enough gold!", "Times New Roman", 48, (0, 0, 0), (540, 75))                           
 
 
+            create_text("gold_count", MAIN_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75))
+            create_text("gold_count", UPGRADE_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75))
+            create_text("gold_count", SHOP_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75)) 
 
 
-
-                # Swapping Menus
-                # If FIGHT text or icon is clicked
-                """
-                if check_button_coords(mouse_pos, MAIN_MENU_TEXT["fight"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["fight"]) == True:
-                    if SCREEN_STATUS == "MAIN":
-                        SCREEN_STATUS = "FIGHT"
-                        # manage_music()
-                        if wave == 0:
-                            create_image("dummy", FIGHT_MENU_IMAGES, "Images/amogus-ascended.png", (540, 360), transparent=True, scaling=[400, 400])
-                            current_enemy = "dummy"
-
-                # If SHOP text or icon is clicked
-                elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["shop"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["shop"]) == True:
-                    if SCREEN_STATUS == "MAIN":
-                        SCREEN_STATUS = "SHOP"
-                        # manage_music()
-
-                # If SHOP_BACK button is clicked
-                elif check_button_coords(mouse_pos, SHOP_MENU_IMAGES["shop_back"]) == True:
-                    if SCREEN_STATUS == "SHOP":
-                        SCREEN_STATUS = "MAIN"
-                        # manage_music()
-
-                if check_button_coords(mouse_pos, MAIN_MENU_TEXT["upgrade"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["upgrade"]) == True:
-                    if SCREEN_STATUS == "MAIN":
-                        SCREEN_STATUS = "UPGRADE"
-
-                if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["upgrade_back"]) == True:
-                    if SCREEN_STATUS == "UPGRADE":
-                        SCREEN_STATUS = "MAIN"
-                        # manage_music()
-                """
-
-
+            
 
         # Screen Updates:
 
@@ -550,3 +559,6 @@ def main():
         display.update()
 
 main()
+
+
+
