@@ -1,3 +1,5 @@
+# Medieval Munchies by Raiyan and Raymond
+
 # PyGame Imports and Initialization
 import pygame
 import pygame.display as display
@@ -433,7 +435,7 @@ def main():
 
                             # If the cooldown has reached <arbitrary value>, 
                             # deal damage to the player
-                            if enemy_cooldown > 300: 
+                            if enemy_cooldown > 1000: 
                                 enemy_cooldown = 0
                                 player_hp -= enemy_dmg
                             
