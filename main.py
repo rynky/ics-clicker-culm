@@ -1,6 +1,7 @@
 # PyGame Imports and Initialization
 import pygame
 import pygame.display as display
+from pygame import time
 from random import randint
 clock = pygame.time.Clock()
 pygame.init()
@@ -23,16 +24,13 @@ SHOP_MENU_IMAGES = {}
 FIGHT_MENU_TEXT = {}
 FIGHT_MENU_IMAGES = {}
 
-# Works as Random Access storage for battle stages
-# This dictionary will contain the enemies in each stage
-# It may be altered at the convenience of the specific stage 
-TEMP_ENEMIES = {}
-
 UPGRADE_MENU_TEXT = {}
 UPGRADE_MENU_IMAGES = {}
 
-VICTORY_MENU_TEXT = {}
-VICTORY_MENU_IMAGES = {}
+# Work as Random Access storage for battle stages
+# This dictionary will contain the enemies in each stage
+# It may be altered at the convenience of the specific stage 
+TEMP_ENEMIES = {}
 
 
 #------------Window settings------------# 
@@ -59,8 +57,6 @@ ENEMYHP_SCALING = 1.2
 ENEMYDMG_SCALING = 1.1
 in_battle = False
 dead = False
-enemy_cooldown = 0
-last_frame = clock.tick(30)
 player = {
     "health": 10, 
     "damage": 1, 
@@ -102,9 +98,11 @@ def create_text(name: str,
     """
 
     text_object = pygame.font.SysFont(font_name, font_size).render(text, anti_aliasing, color)
-
-    # Ensures that the coordinates are interpreted based on the center of the image
-    screen[name] = [text_object, (text_coordinates[0] - text_object.get_width()/2, text_coordinates[1] - text_object.get_height()/2)]
+    if name not in screen:
+        # Ensures that the coordinates are interpreted based on the center of the image
+        screen.setdefault(name, [text_object, (text_coordinates[0] - text_object.get_width()/2, text_coordinates[1] - text_object.get_height()/2)])
+    else:
+        screen[name] = [text_object, (text_coordinates[0] - text_object.get_width()/2, text_coordinates[1] - text_object.get_height()/2)]
     
 
 def create_image(name: str, 
@@ -211,7 +209,6 @@ def main_menu():
     create_image("gold", MAIN_MENU_IMAGES, "Images/coin.png", (900,75), transparent=True, scaling=[100,100])
     create_text("gold_count", MAIN_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75))
 
-
 def upgrade_menu(stats: list):
     """
     Given a list <stats> that contains elements in the format [name, path, coords, scale], 
@@ -251,7 +248,6 @@ def upgrade_menu(stats: list):
 
     create_image("gold", UPGRADE_MENU_IMAGES, "Images/coin.png", (900,75), transparent=True, scaling=[100,100])
     create_image("upgrade_back", UPGRADE_MENU_IMAGES, "Images/arrow.png", (110, 80), transparent=True, scaling=[300, 300])
-
 
 def shop_menu(items: list):
     """
@@ -302,6 +298,88 @@ def tutorial_stage():
 
     enemy_object = create_enemy("Dummy", 10, 0, "Images/amogus-ascended.png")
     TEMP_ENEMIES[enemy_object["name"]] = enemy_object 
+        
+
+
+
+
+def progress(old_enemy: dict) -> dict:
+    """
+    A function that increases the difficulty of the game by increasing the stats of the enemy.
+    """
+    
+    new_enemy = {}
+    ENEMY_NAMES = ["Archer", "Knight", "Hunter", "a", "b", "c", "d"]
+
+    # Randomly chooses a basic enemy name and multiplies the hp and dmg of the enemy by a constant
+    new_enemy['name'] = ENEMY_NAMES[randint(0, len(ENEMY_NAMES)-1)]
+    new_enemy['hp'] = round((old_enemy['hp'] * ENEMYHP_SCALING), 2)
+    new_enemy['dmg'] = round((old_enemy['dmg'] * ENEMYDMG_SCALING), 1)
+    return new_enemy
+
+
+def battle(enemy_stats: dict, player: dict, wave: int):
+    """
+    A function that runs a battle process between the user and an enemy.
+    """
+    
+    global FIGHT_MENU_IMAGES, FIGHT_MENU_TEXT, TEMP_ENEMIES
+    global dead
+
+
+    # Put the user in the battle loop
+    in_battle = True
+    while in_battle:
+        
+        # Render all text and images
+        WIN.fill((124, 252, 0))
+        for text in FIGHT_MENU_TEXT:
+            WIN.blit(FIGHT_MENU_TEXT[text][0], FIGHT_MENU_TEXT[text][1])
+        for image in FIGHT_MENU_IMAGES:
+            WIN.blit(FIGHT_MENU_IMAGES[image][0], FIGHT_MENU_IMAGES[image][1])
+    
+        # Print the stats of the enemy
+        print(f"You are about to fight {enemy_name}!")
+        print(f"{enemy_name}'s stats:")
+        input()
+
+
+
+    """
+    time_elapsed = 0
+    # Loops through a fight until either party falls below 0 hp.
+    while hp > 0 and enemy_hp > 0:
+        downtime = clock.tick(30)
+        time_elapsed += downtime
+        if time_elapsed > 500:
+            time_elapsed = 0 
+            if player['weapon'] != None:
+                damage_c = dmg * player["weapon"]["damage"]
+                enemy_hp = round((enemy_hp - damage_c), 2)
+            else:
+                enemy_hp = round((enemy_hp - dmg), 2)
+
+            hp = round(hp - (enemy_dmg * (1 - (defence/10))), 2)
+            if enemy_hp < 0:
+                enemy_hp = 0
+            if hp < 0:
+                hp = 0
+
+            print(f"{enemy_stats['name']}'s Health: {enemy_hp}\n Your Health: {hp}")
+        
+    print("--------------------------------------------------")
+
+    # Checks the result of the battle and rewards the player accordingly
+    if hp == 0 and enemy_hp == 0:
+        print(f"You and the enemy simultaneously collapsed. You got away but couldn't safely pick up the gold.")
+    elif hp > 0:
+        gold_dropped = randint(1,1)
+        print(f"You won! You gain {gold_dropped} gold!")
+        player["gold"] += gold_dropped
+    else:
+        print("You died :(")
+        dead = True
+    """
 
 
 #---------------Game Loop---------------# 
@@ -310,8 +388,7 @@ def tutorial_stage():
 def main():
 
     global SCREEN_STATUS, wave, weapons
-    global TEMP_ENEMIES, in_battle, enemy_cooldown
-    global clock, last_frame
+    global TEMP_ENEMIES, in_battle
 
     weapons = {
         "Chopsticks": {"cost": 5, "damage": 2},
@@ -365,10 +442,6 @@ def main():
         elif SCREEN_STATUS == "UPGRADE":
             TEXT = UPGRADE_MENU_TEXT
             IMAGES = UPGRADE_MENU_IMAGES
-
-        elif SCREEN_STATUS == "VICTORY":
-            TEXT = VICTORY_MENU_TEXT
-            IMAGES = VICTORY_MENU_IMAGES
         
         # Track the (x, y) coordinates of the mouse
         # relative to the game window
@@ -381,6 +454,7 @@ def main():
                 running = False
             
             if event.type == pygame.MOUSEBUTTONDOWN:
+                current_enemy = ""
 
                 # Function for each menu
                 if SCREEN_STATUS == "MAIN":
@@ -394,8 +468,6 @@ def main():
 
                 if SCREEN_STATUS == "FIGHT":
 
-                    print(enemy_cooldown)
-
                     if wave == 0:
                         
                         if in_battle == False:
@@ -404,9 +476,8 @@ def main():
                             FIGHT_MENU_IMAGES = {}
                             FIGHT_MENU_TEXT = {}
 
-                            # Render the enemy sprite
                             create_image("dummy", FIGHT_MENU_IMAGES, "Images/amogus-ascended.png", (540, 360), transparent=True, scaling=[400, 400])
-                            create_enemy("dummy", 10, 1)
+                            create_enemy("dummy", 10, 0)
 
                             # Create temporary variables for the battle
                             player_hp = player["health"]
@@ -414,66 +485,24 @@ def main():
                             enemy_hp = TEMP_ENEMIES["dummy"]["hp"]
                             enemy_dmg = TEMP_ENEMIES["dummy"]["dmg"]
 
-                            # Render the enemy and player health stats
-                            create_text("enemy health", FIGHT_MENU_TEXT, f"Enemy Health: {enemy_hp}", "Times New Roman", 64, (255, 0, 0), (540, 50))
-
-                            create_image("player health", FIGHT_MENU_IMAGES, "Images/heart.png", (780, 680), transparent=True, scaling=[75,75])
-                            create_text("player health", FIGHT_MENU_TEXT, f"Health: {player_hp}", "Times New Roman", 48, (0, 0, 0), (920, 675))
-                            
-                            # Begin the Battle Loop
                             in_battle = True
-                            enemy_cooldown = 0
                             print(f"Enemy Health: {enemy_hp}")
                         
                         else:
 
-                            # Increment the cooldown with respect
-                            # to the frame rate of the game (30 FPS)
-                            enemy_cooldown += last_frame
-
-                            # If the cooldown has reached <arbitrary value>, 
-                            # deal damage to the player
-                            if enemy_cooldown > 300: 
-                                enemy_cooldown = 0
-                                player_hp -= enemy_dmg
-                            
-                            # Check if the enemy has been clicked
                             if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES["dummy"]) == True:
-                                
-                                # Damage calculations
+                                    
                                 player_damage = player['damage'] * player['weapon_multiplier']
                                 enemy_hp -= player_damage
 
-                                print(f"\nYou did {player_damage} damage!")
-                                print(f"Enemy Health: {enemy_hp}")
-
-                                # Ends the battle when the enemy or player health is 0
                                 if enemy_hp <= 0 or player_hp <= 0:
-
-                                    # Reset the Victory and Loss menus
-                                    VICTORY_MENU_TEXT = {}
-                                    VICTORY_MENU_IMAGES = {}
-                                    
-                                    # Handles win and loss cases
-                                    if enemy_hp <= 0:
-                                        print("VICTORY")
-                                        enemy_hp = 0
-                                        
-                                        create_text("dummy", VICTORY_MENU_TEXT, f'YOU HAVE SLAIN DUMMY', "Times New Roman", 48, (0, 0, 0), (540, 300))
-                                        create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 400))
-
-                                        SCREEN_STATUS = "VICTORY"
-
-                                    elif player_hp <= 0:
-                                        player_hp = 0
-
-                                    # End the battle process
+                                    enemy_hp = 0
                                     in_battle = False
+                                    SCREEN_STATUS = "MAIN"
                                     wave += 1
 
-                            # Update the enemy and player health text
-                            create_text("player health", FIGHT_MENU_TEXT, f"Health: {player_hp}", "Times New Roman", 48, (0, 0, 0), (920, 675))
-                            create_text("enemy health", FIGHT_MENU_TEXT, f"Enemy Health: {enemy_hp}", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                                print(f"\nYou did {player_damage} damage!")
+                                print(f"Enemy Health: {enemy_hp}")
 
 
                     elif wave % 5 == 0:
@@ -481,16 +510,6 @@ def main():
 
                     elif wave % 10 == 3 or wave % 10 == 8:
                         print("Random Event")
-
-                
-                elif SCREEN_STATUS == "VICTORY":
-                    
-                    # If you are on the victory screen,
-                    # allow the continue button to switch to
-                    # the main menu
-                    if check_button_coords(mouse_pos, VICTORY_MENU_TEXT["continue"]):
-                        SCREEN_STATUS = "MAIN"
-
 
                 elif SCREEN_STATUS == "SHOP":
                     shop_choice = None
@@ -569,8 +588,6 @@ def main():
             WIN.fill((124, 252, 0))
         if SCREEN_STATUS == "UPGRADE":
             WIN.fill((124, 0, 200))
-        if SCREEN_STATUS == "VICTORY":
-            WIN.fill((255, 255, 255))
 
         # Render all text and images
         for text in TEXT:
@@ -581,3 +598,6 @@ def main():
         display.update()
 
 main()
+
+
+
