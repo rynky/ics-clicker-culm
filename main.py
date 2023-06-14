@@ -1,5 +1,4 @@
 # Medieval Munchies by Raiyan and Raymond
-
 # PyGame Imports and Initialization
 import pygame
 import pygame.display as display
@@ -435,7 +434,8 @@ def main():
     global SCREEN_STATUS, wave, weapons
     global TEMP_ENEMIES, in_battle, in_event 
     global clock, last_frame, last_enemy, enemy_cooldown
-
+    EVENT_MENU_TEXT = {}
+    EVENT_MENU_IMAGES = {}
     weapons = {
         "Chopsticks": {"cost": 5, "damage": 2},
         "Spatula": {"cost": 8, "damage": 3},
@@ -518,7 +518,10 @@ def main():
                 if SCREEN_STATUS == "EVENT":
                     
                     if in_event == False:
-                        
+                        first_screen = True
+                        second_screen = False
+                        ending_screen = False
+                        ending = None
                         event_number = random_event()
                         print("This code is running", event_number)
                         in_event = True
@@ -527,17 +530,76 @@ def main():
                     if in_event == True:
                         
                         if event_number == 1:
-                        
-                            # Render the butcher sprite
-                            create_text("enemy health", EVENT_MENU_TEXT, "BUTCHER APPROACHES", "Times New Roman", 64, (255, 0, 0), (540, 50))
-                            create_image("butcher", EVENT_MENU_IMAGES, "Images/butcher.png", (810, 360), transparent=True, scaling=[400, 400])
 
-                            # Text
-                            create_text("dialogue 1", EVENT_MENU_TEXT, "Hey buddy, I need some help", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))
-                            create_text("dialogue 2", EVENT_MENU_TEXT, "tenderizing my meat...", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
-                            create_text("dialogue 3", EVENT_MENU_TEXT, "Care to help?", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
-                            create_text("yes", EVENT_MENU_TEXT, "[Yes]", "Times New Roman", 48, (255, 0, 0), (250+100-100, 456-100+96))
-                            create_text("no", EVENT_MENU_TEXT, "[No]", "Times New Roman", 48, (255, 0, 0), (250+100+100, 456-100+96))
+                            if first_screen == True:
+                                EVENT_MENU_TEXT = {}
+                                # Render the butcher sprite
+                                create_text("enemy health", EVENT_MENU_TEXT, "BUTCHER APPROACHES", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                                create_image("butcher", EVENT_MENU_IMAGES, "Images/butcher.png", (810, 360), transparent=True, scaling=[400, 400])
+
+                                # Text
+                                create_text("dialogue 1", EVENT_MENU_TEXT, "Hey buddy, I need some help", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))
+                                create_text("dialogue 2", EVENT_MENU_TEXT, "tenderizing my meat...", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
+                                create_text("dialogue 3", EVENT_MENU_TEXT, "Care to help?", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
+                                create_text("yes", EVENT_MENU_TEXT, "[Yes]", "Times New Roman", 48, (255, 0, 0), (250+100-100, 456-100+96))
+                                create_text("no", EVENT_MENU_TEXT, "[No]", "Times New Roman", 48, (255, 0, 0), (250+100+100, 456-100+96))
+                                if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
+                                    ending = 1
+                                    ending_screen = True
+                                    first_screen = False
+                                elif check_button_coords(mouse_pos, EVENT_MENU_TEXT["no"]) == True:
+                                    EVENT_MENU_TEXT = {}
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "How... Unfortunate.", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "I have another offer though.", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "Can I buy your arm for 15 gold?", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
+                                    create_text("yes", EVENT_MENU_TEXT, "[Yes]", "Times New Roman", 48, (255, 0, 0), (100, 456-100+96))
+                                    create_text("no", EVENT_MENU_TEXT, "[No]", "Times New Roman", 48, (255, 0, 0), (600, 456-100+96))  
+                                    second_screen = True
+                                    first_screen = False
+                                    
+                            if second_screen == True:
+                                if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
+                                    ending = 2
+                                    second_screen = False
+                                    ending_screen = True
+                                
+                                elif check_button_coords(mouse_pos, EVENT_MENU_TEXT["no"]) == True:
+                                    ending = 3
+                                    second_screen = False
+                                    ending_screen = True
+
+                                
+                            if ending_screen == True:
+                                EVENT_MENU_TEXT = {}
+                                if ending == 1:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "Thanks! You can start now!", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "He pays you, and you get stronger.", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "+2 Gold, +1 Damage", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (250+100, 100))
+                                elif ending == 2:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "Great!", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "I've always wanted to try human meat.", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "+15 Gold, health and damage halved.", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
+                                    create_image("arm", EVENT_MENU_IMAGES, "Images/arm.png", (400, 560), transparent=True, scaling=[400, 400])
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (250+100, 100))
+                                    # UPDATE STATS HERE
+                                    # UPDATE CHEF CHARACTER TO ARMLESS SPRITE HERE
+                                elif ending == 3:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "Alright, I'll cya next time.", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))      
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (250+100, 100))
+                                    
+                                if check_button_coords(mouse_pos, EVENT_MENU_TEXT["continue"]) == True:
+                                    SCREEN_STATUS = "MAIN"
+                                    EVENT_MENU_IMAGES = {}
+                                    EVENT_MENU_TEXT = {}
+                                    wave += 1
+
+                                    
+                        if event_number == 2:
+
+                        if event_number == 3:
+
+                        if event_number == 4:
 
 
             # Mouse clicked
