@@ -86,6 +86,11 @@ player = {
     'seasoned': False, 
     "chicken": False,
     "sprite": "Images/chef-character.png"
+
+    'egg': "Images/mystery.png"
+    'milk': "Images/mystery.png"
+    'flour': "Images/mystery.png"
+    'sugar': "Images/mystery.png"
 }
 STATS_INFO = {'health': {'cost': 1, 'increment': 2}, 'defence': {'cost': 1, 'increment': 1, 'max': 5}, 'damage': {'cost': 2, 'increment': 1}}
 wave = 0
@@ -521,16 +526,18 @@ def main():
                         first_screen = True
                         second_screen = False
                         ending_screen = False
+                        stats_changed = False
                         ending = None
                         event_number = random_event()
-                        print("This code is running", event_number)
                         in_event = True
 
-                    # Butcher event
+                    # Runs the random event
                     if in_event == True:
                         
+                        # Butcher Event
                         if event_number == 1:
 
+                            # Loads the first screen
                             if first_screen == True:
                                 EVENT_MENU_TEXT = {}
                                 # Render the butcher sprite
@@ -543,11 +550,16 @@ def main():
                                 create_text("dialogue 3", EVENT_MENU_TEXT, "Care to help?", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
                                 create_text("yes", EVENT_MENU_TEXT, "[Yes]", "Times New Roman", 48, (255, 0, 0), (250+100-100, 456-100+96))
                                 create_text("no", EVENT_MENU_TEXT, "[No]", "Times New Roman", 48, (255, 0, 0), (250+100+100, 456-100+96))
+
+                                # Identifies player decision
                                 if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
+                                    # Goes straight to endings
                                     ending = 1
                                     ending_screen = True
                                     first_screen = False
+
                                 elif check_button_coords(mouse_pos, EVENT_MENU_TEXT["no"]) == True:
+                                    # Loads the second screen
                                     EVENT_MENU_TEXT = {}
                                     create_text("dialogue 1", EVENT_MENU_TEXT, "How... Unfortunate.", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))
                                     create_text("dialogue 2", EVENT_MENU_TEXT, "I have another offer though.", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
@@ -557,6 +569,7 @@ def main():
                                     second_screen = True
                                     first_screen = False
                                     
+                            # Checks for inputs on the second screen        
                             if second_screen == True:
                                 if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
                                     ending = 2
@@ -568,7 +581,9 @@ def main():
                                     second_screen = False
                                     ending_screen = True
 
-                                
+                            
+                            # Displays a screen for each ending for the event
+                            # Each has different stat changes
                             if ending_screen == True:
                                 EVENT_MENU_TEXT = {}
                                 if ending == 1:
@@ -576,34 +591,226 @@ def main():
                                     create_text("dialogue 2", EVENT_MENU_TEXT, "He pays you, and you get stronger.", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
                                     create_text("dialogue 3", EVENT_MENU_TEXT, "+2 Gold, +1 Damage", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
                                     create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (250+100, 100))
+                                    if stats_changed == False:
+                                        player['gold'] += 2
+                                        player['damage'] += 1
+                                        stats_changed = True
                                 elif ending == 2:
                                     create_text("dialogue 1", EVENT_MENU_TEXT, "Great!", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))
-                                    create_text("dialogue 2", EVENT_MENU_TEXT, "I've always wanted to try human meat.", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
-                                    create_text("dialogue 3", EVENT_MENU_TEXT, "+15 Gold, health and damage halved.", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "I've always wanted...", "Times New Roman", 48, (255, 0, 0), (250+100, 308))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "...to try human meat.", "Times New Roman", 48, (255, 0, 0), (250+100, 358))                    
+                                    create_text("dialogue 4", EVENT_MENU_TEXT, "+15 Gold, health & damage halved.", "Times New Roman", 36, (255, 0, 0), (250+100, 408))
                                     create_image("arm", EVENT_MENU_IMAGES, "Images/arm.png", (400, 560), transparent=True, scaling=[400, 400])
                                     create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (250+100, 100))
-                                    # UPDATE STATS HERE
-                                    # UPDATE CHEF CHARACTER TO ARMLESS SPRITE HERE
+                                    if stats_changed == False:
+                                        player['gold'] += 15
+                                        player['damage'] //= 2
+                                        player['health'] //= 2
+                                        player['sprite'] = "Images/chef-character-armless.png"
+                                        stats_changed = True
                                 elif ending == 3:
-                                    create_text("dialogue 1", EVENT_MENU_TEXT, "Alright, I'll cya next time.", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))      
-                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (250+100, 100))
-                                    
-                                if check_button_coords(mouse_pos, EVENT_MENU_TEXT["continue"]) == True:
-                                    SCREEN_STATUS = "MAIN"
-                                    EVENT_MENU_IMAGES = {}
-                                    EVENT_MENU_TEXT = {}
-                                    wave += 1
-
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "Alright, I'll see ya next time.", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))      
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (250+100, 100))                             
                                     
                         if event_number == 2:
-
+                            if ending_screen == False:
+                                create_text("enemy health", EVENT_MENU_TEXT, "FOOD MARKET", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                                create_image("chicken", EVENT_MENU_IMAGES, "Images/chicken.png", (200, 360), transparent=True, scaling=[200, 200])
+                                create_image("milk", EVENT_MENU_IMAGES, "Images/milk.png", (400, 360), transparent=True, scaling=[200, 200])
+                                create_image("rice", EVENT_MENU_IMAGES, "Images/rice.png", (600, 360), transparent=True, scaling=[200, 200])
+                                create_image("chili", EVENT_MENU_IMAGES, "Images/chili.png", (800, 360), transparent=True, scaling=[200, 200])
+                                create_text("leave", EVENT_MENU_TEXT, "Leave", "Times New Roman", 64, (0,0,0), (500, 500))
+                                if check_button_coords(mouse_pos, EVENT_MENU_IMAGES["chicken"]) == True:  
+                                    ending = 1
+                                    ending_screen = True
+                                elif check_button_coords(mouse_pos, EVENT_MENU_IMAGES["milk"]) == True:
+                                    ending = 2
+                                    ending_screen = True
+                                elif check_button_coords(mouse_pos, EVENT_MENU_IMAGES["rice"]) == True:
+                                    ending = 3
+                                    ending_screen = True
+                                elif check_button_coords(mouse_pos, EVENT_MENU_IMAGES["chili"]) == True:
+                                    ending = 4
+                                    ending_screen = True
+                                elif check_button_coords(mouse_pos, EVENT_MENU_TEXT["leave"]) == True:
+                                    ending = 5
+                                    ending_screen = True
+                                
+                            if ending_screen == True:
+                                EVENT_MENU_TEXT = {}
+                                EVENT_MENU_IMAGES = {}
+                                if ending == 1:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You consume the chicken...", 48, (255, 0, 0), (440+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "Why would you choose the unhealthiest item?", "Times New Roman", 36, (255, 0, 0), (440+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "-2 Health", "Times New Roman", 48, (255, 0, 0), (440+100, 456-100))
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))
+                                    if stats_changed == False:
+                                        player['health'] -= 2
+                                        stats_changed = True
+                                elif ending == 2:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You consume the milk...", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "It strengthens your bones!", "Times New Roman", 48, (255, 0, 0), (440+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "+1 Defence", "Times New Roman", 48, (255, 0, 0), (440+100, 456-100))
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))
+                                    if stats_changed == False:
+                                        player['defence'] += 1
+                                        stats_changed = True
+                                elif ending == 3:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You consumed the rice...", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "It gives you the calories you need!", "Times New Roman", 48, (255, 0, 0), (440+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "+4 Health", "Times New Roman", 48, (255, 0, 0), (440+100, 456-100))
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))
+                                    if stats_changed == False:                          
+                                        player['health'] += 4
+                                        stats_changed = True
+                                elif ending == 4:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You consume the chili...", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "The spice boosts your physical ability...", "Times New Roman", 48, (255, 0, 0), (440+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "+1 Damage", "Times New Roman", 48, (255, 0, 0), (440+100, 456-100))
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))
+                                    if stats_changed == False:
+                                        player['damage'] += 1
+                                        stats_changed = True
+                                elif ending == 5:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You leave the market.", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))      
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))                           
+                            
+                                
                         if event_number == 3:
-
+                            if ending_screen == False:
+                                create_text("enemy health", EVENT_MENU_TEXT, "You find a stash of 11 herbs and spices...", "Times New Roman", 48, (255, 0, 0), (540, 50))
+                                create_text("dialogue 1", EVENT_MENU_TEXT, "Do you consume the spices or keep them?", "Times New Roman", 48, (255, 0, 0), (540, 600)) 
+                                create_image("spices", EVENT_MENU_IMAGES, "Images/spices-herbs.png", (540, 300), transparent=True, scaling=[450,450])
+                                create_text("yes", EVENT_MENU_TEXT, "[yes]", "Times New Roman", 48, (255, 0, 0), (300, 650))   
+                                create_text("no", EVENT_MENU_TEXT, "[no]", "Times New Roman", 48, (255, 0, 0), (780, 650))                          
+                                if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
+                                    ending = 1
+                                    ending_screen = True
+                                elif check_button_coords(mouse_pos, EVENT_MENU_TEXT["no"]) == True:
+                                    ending = 2
+                                    ending_screen = True
+                                    
+                            if ending_screen == True:
+                                EVENT_MENU_TEXT = {}
+                                EVENT_MENU_IMAGES = {}
+                                if ending == 1:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You straight up consume", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "all of the spices...", "Times New Roman", 36, (255, 0, 0), (440+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "+3 Damage, -4 Health", "Times New Roman", 36, (255, 0, 0), (440+100, 456-100))
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100)) 
+                                    if stats_changed == False:
+                                        player['health'] -= 4
+                                        player['damage'] += 3
+                                        stats_changed = True
+                                if ending == 2:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You keep the spices for some reason...", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "There is a [COLONEL] sticker on the bottom...", "Times New Roman", 36, (255, 0, 0), (440+100, 408-100))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "You put the spices in your backpack.", "Times New Roman", 36, (255, 0, 0), (440+100, 456-100))
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))     
+                                    player['seasoned'] = True          
+                                    
                         if event_number == 4:
+                            if first_screen == True:
+                                create_text("enemy health", EVENT_MENU_TEXT, "You find a covered plate...", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                                create_text("dialogue 1", EVENT_MENU_TEXT, "Do you want to", "Times New Roman", 48, (255, 0, 0), (440+100, 500))
+                                create_text("dialogue 2", EVENT_MENU_TEXT, "take what's inside or get a new plate?", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
+                                create_text("dialogue 3", EVENT_MENU_TEXT, "(This action is irreversible.)", "Times New Roman", 48, (255, 0, 0), (540, 600))
+                                create_text("yes", EVENT_MENU_TEXT, "[yes]", "Times New Roman", 48, (255, 0, 0), (400, 650))   
+                                create_text("no", EVENT_MENU_TEXT, "[no]", "Times New Roman", 48, (255, 0, 0), (680, 650))    
+                                create_image("plate_1", EVENT_MENU_IMAGES, "Images/covered-dish.png", (540, 275), transparent=True, scaling=[600,600])      
 
+                                if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
+                                    ending = 1
+                                    first_screen = False
+                                    ending_screen = True
+                                elif check_button_coords(mouse_pos, EVENT_MENU_TEXT["no"]) == True:
+                                    first_screen = False
+                                    second_screen = True
+                                    
+                            if second_screen == True:
+                                EVENT_MENU_IMAGES = {}
+                                EVENT_MENU_TEXT = {}
+                                create_text("enemy health", EVENT_MENU_TEXT, "You swap plates...", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                                create_image("plate_2", EVENT_MENU_IMAGES, "Images/covered-dish-2.png", (540, 275), transparent=True, scaling=[600, 600])
+                                create_text("dialogue 1", EVENT_MENU_TEXT, "Do you want to", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
+                                create_text("dialogue 2", EVENT_MENU_TEXT, "take what's inside this plate?", "Times New Roman", 48, (255, 0, 0), (440+100, 600))
+                                create_text("yes", EVENT_MENU_TEXT, "[yes]", "Times New Roman", 48, (255, 0, 0), (250, 650))   
+                                create_text("no", EVENT_MENU_TEXT, "[no]", "Times New Roman", 48, (255, 0, 0), (830, 650))    
 
+                                if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
+                                    ending = 2
+                                    ending_screen = True
+                                    second_screen = False
+                                elif check_button_coords(mouse_pos, EVENT_MENU_TEXT["no"]) == True:
+                                    ending = 3
+                                    ending_screen = True
+                                    second_screen = False
+                                
+                            if ending_screen == True:
+                                EVENT_MENU_IMAGES = {}
+                                EVENT_MENU_TEXT = {}
+                                if ending == 1:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "There was a...", "Times New Roman", 48, (255, 0, 0), (440+100, 500))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "knife sharpener inside!", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "+2 Damage", "Times New Roman", 48, (255, 0, 0), (540, 600)) 
+                                    create_image("plate_1", EVENT_MENU_IMAGES, "Images/dish-knife-sharpener.png", (540, 275), transparent=True, scaling=[500,500])  
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))
+                                    if stats_changed == False:
+                                        player['damage'] += 2
+                                        stats_changed = True
+                                        
+                                elif ending == 2:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "There was a...", "Times New Roman", 48, (255, 0, 0), (440+100, 500))
+                                    create_text("dialogue 2", EVENT_MENU_TEXT, "glass of water inside...", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
+                                    create_text("dialogue 3", EVENT_MENU_TEXT, "You drink it and nothing happens.", "Times New Roman", 48, (255, 0, 0), (540, 600)) 
+                                    create_image("plate_1", EVENT_MENU_IMAGES, "Images/dish-glass-water.png", (540, 275), transparent=True, scaling=[500,500]) 
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))                           
+                                elif ending == 3:
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You just leave.", "Times New Roman", 48, (255, 0, 0), (440+100, 600))
+                                    create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 60, (255, 0, 0), (440+100, 300))  
+
+                        try:
+                            if check_button_coords(mouse_pos, EVENT_MENU_TEXT["continue"]) == True:
+                                in_event = False
+                                SCREEN_STATUS = "MAIN"
+                                EVENT_MENU_IMAGES = {}
+                                EVENT_MENU_TEXT = {}
+                                wave += 1    
+                        except KeyError:
+                            pass
+                            
             # Mouse clicked
             if event.type == pygame.MOUSEBUTTONDOWN:
+
+                if SCREEN_STATUS == "UPGRADE":
+                    upgrade_choice = None
+
+                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["upgrade_back"]) == True:
+                        SCREEN_STATUS = "MAIN"
+                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["health_button"]) == True:
+                        upgrade_choice = "health"
+                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["defence_button"]) == True:
+                        upgrade_choice = "defence"
+                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["damage_button"]) == True:
+                        upgrade_choice = "damage"
+
+                    if upgrade_choice in player.keys():
+                        if player["gold"] >= STATS_INFO[upgrade_choice]["cost"]:
+                            if upgrade_choice == "defence":
+                                if player["defence"] >= STATS_INFO['defence']['max']:
+                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "Defence is maxed!", "Times New Roman", 48, (0, 0, 0), (540, 75))
+                                else:
+                                    player[upgrade_choice] += STATS_INFO[upgrade_choice]['increment']
+                                    player["gold"] -= STATS_INFO[upgrade_choice]['cost']
+                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 75))    
+                            else:
+                                player[upgrade_choice] += STATS_INFO[upgrade_choice]['increment']
+                                player["gold"] -= STATS_INFO[upgrade_choice]['cost']
+                                create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 75))   
+                
+                        else:
+                            create_text("upgrade_note", UPGRADE_MENU_TEXT, "You don't have enough gold!", "Times New Roman", 48, (0, 0, 0), (540, 75))                           
+
 
                 # Function for each menu
                 if SCREEN_STATUS == "MAIN":
@@ -774,39 +981,17 @@ def main():
                             create_text("buy_note", SHOP_MENU_TEXT, "You successfully bought: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
       
 
-                elif SCREEN_STATUS == "UPGRADE":
-                    upgrade_choice = None
-
-                    if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["upgrade_back"]) == True:
-                        SCREEN_STATUS = "MAIN"
-                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["health_button"]) == True:
-                        upgrade_choice = "health"
-                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["defence_button"]) == True:
-                        upgrade_choice = "defence"
-                    elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["damage_button"]) == True:
-                        upgrade_choice = "damage"
-
-                    if upgrade_choice in player.keys():
-                        if player["gold"] >= STATS_INFO[upgrade_choice]["cost"]:
-                            if upgrade_choice == "defence":
-                                if player["defence"] >= STATS_INFO['defence']['max']:
-                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "Defence is maxed!", "Times New Roman", 48, (0, 0, 0), (540, 75))
-                                else:
-                                    player[upgrade_choice] += STATS_INFO[upgrade_choice]['increment']
-                                    player["gold"] -= STATS_INFO[upgrade_choice]['cost']
-                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 75))    
-                            else:
-                                player[upgrade_choice] += STATS_INFO[upgrade_choice]['increment']
-                                player["gold"] -= STATS_INFO[upgrade_choice]['cost']
-                                create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 75))   
-                
-                        else:
-                            create_text("upgrade_note", UPGRADE_MENU_TEXT, "You don't have enough gold!", "Times New Roman", 48, (0, 0, 0), (540, 75))                           
-
 
             create_text("gold_count", MAIN_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75))
             create_text("gold_count", UPGRADE_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75))
             create_text("gold_count", SHOP_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75)) 
+
+            create_image("heart", MAIN_MENU_IMAGES, "Images/heart.png", (800, 200), transparent=True, scaling=[100, 100])
+            create_image("shield", MAIN_MENU_IMAGES, "Images/shield.png", (800, 275), transparent=True, scaling=[100, 100])
+            create_image("sword", MAIN_MENU_IMAGES, "Images/sword.png", (800, 350), transparent=True, scaling=[100, 100])
+            create_text("hp_stat", MAIN_MENU_TEXT, str(player['health']), "Times New Roman", 48, (0, 0, 0), (900, 200))
+            create_text("def_stat", MAIN_MENU_TEXT, str(player['defence']), "Times New Roman", 48, (0, 0, 0), (900, 275))
+            create_text("dmg_stat", MAIN_MENU_TEXT, str(player['damage']), "Times New Roman", 48, (0, 0, 0), (900, 350))
 
 
             
