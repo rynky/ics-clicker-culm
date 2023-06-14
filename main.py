@@ -30,6 +30,9 @@ FIGHT_MENU_IMAGES = {}
 # It may be altered at the convenience of the specific stage 
 TEMP_ENEMIES = {}
 
+EVENT_MENU_TEXT = {}
+EVENT_MENU_IMAGES = {}
+
 UPGRADE_MENU_TEXT = {}
 UPGRADE_MENU_IMAGES = {}
 
@@ -57,12 +60,18 @@ Red = (255, 0, 0)
 Green = (0, 255, 0)
 Blue = (0, 0, 255)
 """
-ENEMYHP_SCALING = 1.2
+ENEMYHP_SCALING = 1.4
 ENEMYDMG_SCALING = 1.1
+
 in_battle = False
 dead = False
 enemy_cooldown = 0
-last_frame = clock.tick(30)
+last_frame = clock.tick(1)
+last_enemy = ""
+
+in_event = False
+completed_events = []
+
 player = {
     "health": 10, 
     "damage": 1, 
@@ -306,14 +315,126 @@ def tutorial_stage():
     TEMP_ENEMIES[enemy_object["name"]] = enemy_object 
 
 
+def generate_enemy(last_enemy: dict) -> dict:
+    """
+    A function that generates a new enemy object, <random_enemy>,
+    by scaling the stats based on the health and damage of the most recently
+    fought enemy, <last_enemy>, with respect to the global scaling constants,
+    <ENEMYHP_SCALING> and <ENEMYDMG_SCALING>.
+    """
+    
+    global ENEMYHP_SCALING, ENEMYDMG_SCALING
+
+    random_enemy = {}
+    ENEMY_NAMES = ["Waiter", "Chef", "Farmer"]
+
+    # Randomly chooses a basic enemy name and multiplies the hp and dmg of the enemy by a constant
+    random_enemy['name'] = ENEMY_NAMES[randint(0, len(ENEMY_NAMES)-1)]
+    random_enemy['hp'] = round((last_enemy['hp'] * ENEMYHP_SCALING), 2)
+    random_enemy['dmg'] = round((last_enemy['dmg'] * ENEMYDMG_SCALING), 1)
+
+    if random_enemy["name"] == "Waiter":
+        random_enemy["sprite"] = "Images/waiter.png"
+    if random_enemy["name"] == "Chef":
+        random_enemy["sprite"] = "Images/chef.png"
+    if random_enemy["name"] == "Farmer":
+        random_enemy["sprite"] = "Images/farmer.png"
+
+    return random_enemy
+
+
+def random_event():
+    """
+    A function that creates random interactive events.
+    """
+    global completed_events, wave, SCREEN_STATUS
+    
+    number = 1
+    while number in completed_events:
+        number = randint(1,4)
+        
+    completed_events.append(number)
+    SCREEN_STATUS = "EVENT"
+        
+    """
+        print("You meet a butcherer.")
+        print("He offers you a job to tenderize his meats... ")
+        choice = input("Do you accept? [y/n] ")
+        if choice == 'y':
+            print("During the process, you gain strength, increasing your damage. He also pays you 1 gold for your time.")
+            player['gold'] += 1
+            player['damage'] += 1
+        if choice == 'n':
+            print("He asks you if you would sell him a cut of your own meat... ")
+            choice = input("Will you sell him your left arm? [y/n] ")
+            if choice == 'y':
+                print("He buys your left arm for 15 gold. In the process, you lose a lot of blood. The loss of your arm also makes it difficult to fight. Your damage and health is halved. ")
+                player['gold'] += 15
+                player['damage'] /= 2
+                player['health'] /= 2
+            elif choice == 'n':
+                print("You simply leave his store.")
+        """
+    
+    """
+    # Market Event
+    if number == 2:
+        print("You come across a food market.")
+        choice = input("Do you buy milk, fried chicken, rice, a chili pepper, or nothing? [1/2/3/4/5] ")
+        while choice not in ["1","2","3","4","5"]:
+            choice = input("What is your decision? [1/2/3/4/5] ")
+        if choice == "1":
+            print("The milk strengthen your bones, giving bonus defence.")
+            player["defence"] += 2
+        elif choice == "2":
+            print("The greasy chicken increases your blood pressure, negatively impacting your health.")
+            player["health"] *= 0.9
+        elif choice == "3":
+            print("The rice fills you up, envigorating you and granting bonus health.")
+            player["health"] *= 1.2
+        elif choice == "4":
+            print("The chili pepper sets your mouth on fire, granting a small bonus to your damage.")
+            player['damage'] += 1
+        elif choice == "5":
+            print("You just walk away.")
+
+    # Spices Event
+    if number == 3:
+        print("You find a stash of 11 herbs and spices.")
+        if player["weapon"] != None:
+            choice = input("Do you choose to season your weapon or consume the spices yourself? [1, 2] ")
+        else:
+            choice = input("Do you consume all of the spices? [2, 3] ")
+            
+        if choice == "1":
+            print("You enhance your weapon with flavour, doubling its damage.")
+            player['weapon']['damage'] *= 2
+        elif choice == "2":
+            print("You consume the spices, sacrificing your health for damage and defence.")
+            player['defence'] *= 1.1
+            player['health'] *= 0.9
+            player['damage'] *= 1.25
+        else:
+            print("You keep the spices.")
+            player['seasoned'] = True
+            
+    # Sacrifice Event
+    if number == 4:
+        print("you find a coin on the ground.")
+        player['gold'] += 1
+    """
+
+    return number
+
+
 #---------------Game Loop---------------# 
 
 
 def main():
 
     global SCREEN_STATUS, wave, weapons
-    global TEMP_ENEMIES, in_battle, enemy_cooldown
-    global clock, last_frame
+    global TEMP_ENEMIES, in_battle, in_event 
+    global clock, last_frame, last_enemy, enemy_cooldown
 
     weapons = {
         "Chopsticks": {"cost": 5, "damage": 2},
@@ -363,6 +484,10 @@ def main():
         elif SCREEN_STATUS == "FIGHT":
             TEXT = FIGHT_MENU_TEXT
             IMAGES = FIGHT_MENU_IMAGES
+
+        elif SCREEN_STATUS == "EVENT":
+            TEXT = EVENT_MENU_TEXT
+            IMAGES = EVENT_MENU_IMAGES
         
         elif SCREEN_STATUS == "UPGRADE":
             TEXT = UPGRADE_MENU_TEXT
@@ -376,12 +501,46 @@ def main():
         # relative to the game window
         mouse_pos = pygame.mouse.get_pos()
 
+        # Local Variables that aid in the instantiation 
+        # of battle processes
+        enemy_name = None
+        enemy_sprite = None 
+        enemy_sprite_size = None
+
         for event in pygame.event.get():
 
             # Closing the window ends the game
             if event.type == pygame.QUIT:
                 running = False
-            
+
+            # This clause is to exclusively deal with random events
+            if event.type == pygame.MOUSEBUTTONUP:
+                if SCREEN_STATUS == "EVENT":
+                    
+                    if in_event == False:
+                        
+                        event_number = random_event()
+                        print("This code is running", event_number)
+                        in_event = True
+
+                    # Butcher event
+                    if in_event == True:
+                        
+                        if event_number == 1:
+                        
+                            # Render the butcher sprite
+                            create_text("enemy health", EVENT_MENU_TEXT, "BUTCHER APPROACHES", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                            create_image("butcher", EVENT_MENU_IMAGES, "Images/butcher.png", (810, 360), transparent=True, scaling=[400, 400])
+
+                            # Text
+                            create_text("dialogue 1", EVENT_MENU_TEXT, "Hey buddy, I need some help", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))
+                            create_text("dialogue 2", EVENT_MENU_TEXT, "tenderizing my meat...", "Times New Roman", 48, (255, 0, 0), (250+100, 408-100))
+                            create_text("dialogue 3", EVENT_MENU_TEXT, "Care to help?", "Times New Roman", 48, (255, 0, 0), (250+100, 456-100))
+                            create_text("yes", EVENT_MENU_TEXT, "[Yes]", "Times New Roman", 48, (255, 0, 0), (250+100-100, 456-100+96))
+                            create_text("no", EVENT_MENU_TEXT, "[No]", "Times New Roman", 48, (255, 0, 0), (250+100+100, 456-100+96))
+
+
+            # Mouse clicked
             if event.type == pygame.MOUSEBUTTONDOWN:
 
                 # Function for each menu
@@ -399,34 +558,71 @@ def main():
                     print(enemy_cooldown)
 
                     if wave == 0:
+                        enemy_name = "Dummy"
+                        enemy_sprite = "Images/training_dummy.png"
+                        enemy_sprite_size = [400, 400] 
+                        create_enemy(enemy_name, 10, 0)
+                    
+                    elif wave % 5 == 0:
+                        enemy_name = "The Impostor"
+                        enemy_sprite = "Images/amogus-ascended.png"
+                        enemy_sprite_size = [500, 500]
+                        create_enemy(enemy_name, 20, 2)
+                        print("Boss")
+
+                    elif wave % 10 == 3 or wave % 10 == 8:
+
+                        # Switch to event screen
+                        SCREEN_STATUS = "EVENT"
+
+                    else:
                         
+                        # Only generate a new enemy
+                        # if the battle process is not 
+                        # currently running
                         if in_battle == False:
-                            
+                            new_enemy = generate_enemy(TEMP_ENEMIES[last_enemy])
+                        
+                        enemy_name = new_enemy["name"]
+                        enemy_sprite = new_enemy["sprite"]
+                        enemy_sprite_size = [400, 400]
+                        create_enemy(enemy_name, new_enemy["hp"], new_enemy["dmg"])
+                        
+                    # Battle process
+                    # Ensures that an event has not been triggered,
+                    # by checking the SCREEN_STATUS
+                    if SCREEN_STATUS == "FIGHT":
+                    
+                        if in_battle == False:
+                                
                             # Reset the menu images and text
                             FIGHT_MENU_IMAGES = {}
                             FIGHT_MENU_TEXT = {}
 
                             # Render the enemy sprite
-                            create_image("dummy", FIGHT_MENU_IMAGES, "Images/amogus-ascended.png", (540, 360), transparent=True, scaling=[400, 400])
-                            create_enemy("dummy", 10, 1)
+                            create_image(enemy_name, FIGHT_MENU_IMAGES, enemy_sprite, (540, 360), transparent=True, scaling=enemy_sprite_size)
 
                             # Create temporary variables for the battle
                             player_hp = player["health"]
 
-                            enemy_hp = TEMP_ENEMIES["dummy"]["hp"]
-                            enemy_dmg = TEMP_ENEMIES["dummy"]["dmg"]
+                            enemy_hp = TEMP_ENEMIES[enemy_name]["hp"]
+                            enemy_dmg = TEMP_ENEMIES[enemy_name]["dmg"]
 
-                            # Render the enemy and player health stats
-                            create_text("enemy health", FIGHT_MENU_TEXT, f"Enemy Health: {enemy_hp}", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                            # Render the enemy health and player health, defense, attack stats
+                            create_text("enemy health", FIGHT_MENU_TEXT, f"{enemy_name.upper()} APPROACHES", "Times New Roman", 64, (255, 0, 0), (540, 50))
 
-                            create_image("player health", FIGHT_MENU_IMAGES, "Images/heart.png", (780, 680), transparent=True, scaling=[75,75])
-                            create_text("player health", FIGHT_MENU_TEXT, f"Health: {player_hp}", "Times New Roman", 48, (0, 0, 0), (920, 675))
+                            create_image("player health", FIGHT_MENU_IMAGES, "Images/heart.png", (805, 680), transparent=True, scaling=[75,75])
+                            create_text("player health", FIGHT_MENU_TEXT, f"Health: {player_hp}", "Times New Roman", 48, (0, 0, 0), (950, 675))
+
+                            create_text("player defense", FIGHT_MENU_TEXT, f"Defense: {player['defence']}", "Times New Roman", 48, (0, 0, 0), (540, 675))
                             
+                            create_text("player damage", FIGHT_MENU_TEXT, f"Damage: {player['damage'] * player['weapon_multiplier']}", "Times New Roman", 48, (0, 0, 0), (150, 675))
+                                
                             # Begin the Battle Loop
                             in_battle = True
                             enemy_cooldown = 0
                             print(f"Enemy Health: {enemy_hp}")
-                        
+                            
                         else:
 
                             # Increment the cooldown with respect
@@ -435,13 +631,13 @@ def main():
 
                             # If the cooldown has reached <arbitrary value>, 
                             # deal damage to the player
-                            if enemy_cooldown > 1000: 
-                                enemy_cooldown = 0
-                                player_hp -= enemy_dmg
-                            
+                            if enemy_cooldown > 2 * last_frame: 
+                                    enemy_cooldown = 0
+                                    player_hp -= enemy_dmg
+
                             # Check if the enemy has been clicked
-                            if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES["dummy"]) == True:
-                                
+                            if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES[enemy_name]) == True:
+                                    
                                 # Damage calculations
                                 player_damage = player['damage'] * player['weapon_multiplier']
                                 enemy_hp -= player_damage
@@ -455,13 +651,13 @@ def main():
                                     # Reset the Victory and Loss menus
                                     VICTORY_MENU_TEXT = {}
                                     VICTORY_MENU_IMAGES = {}
-                                    
+                                        
                                     # Handles win and loss cases
                                     if enemy_hp <= 0:
                                         print("VICTORY")
                                         enemy_hp = 0
-                                        
-                                        create_text("dummy", VICTORY_MENU_TEXT, f'YOU HAVE SLAIN DUMMY', "Times New Roman", 48, (0, 0, 0), (540, 300))
+                                            
+                                        create_text("dummy", VICTORY_MENU_TEXT, f'YOU HAVE SLAIN {enemy_name.upper()}', "Times New Roman", 48, (0, 0, 0), (540, 300))
                                         create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 400))
 
                                         SCREEN_STATUS = "VICTORY"
@@ -472,19 +668,14 @@ def main():
                                     # End the battle process
                                     in_battle = False
                                     wave += 1
+                                    last_enemy = enemy_name
 
                             # Update the enemy and player health text
-                            create_text("player health", FIGHT_MENU_TEXT, f"Health: {player_hp}", "Times New Roman", 48, (0, 0, 0), (920, 675))
-                            create_text("enemy health", FIGHT_MENU_TEXT, f"Enemy Health: {enemy_hp}", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                            # Floor and round each value to avoid floating point errors
+                            create_text("player health", FIGHT_MENU_TEXT, f"Health: {round(player_hp // 1)}", "Times New Roman", 48, (0, 0, 0), (950, 675))
+                            create_text("enemy health", FIGHT_MENU_TEXT, f"Health: {round(enemy_hp // 1)}", "Times New Roman", 64, (255, 0, 0), (540, 50))
 
 
-                    elif wave % 5 == 0:
-                        print("Boss")
-
-                    elif wave % 10 == 3 or wave % 10 == 8:
-                        print("Random Event")
-
-                
                 elif SCREEN_STATUS == "VICTORY":
                     
                     # If you are on the victory screen,
@@ -567,7 +758,7 @@ def main():
             WIN.fill((255, 255, 228))
         elif SCREEN_STATUS == "SHOP":
             WIN.fill((133, 94, 66))
-        if SCREEN_STATUS == "FIGHT":
+        if SCREEN_STATUS == "FIGHT" or SCREEN_STATUS == "EVENT":
             WIN.fill((124, 252, 0))
         if SCREEN_STATUS == "UPGRADE":
             WIN.fill((124, 0, 200))
