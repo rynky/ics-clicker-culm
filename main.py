@@ -38,6 +38,9 @@ UPGRADE_MENU_IMAGES = {}
 VICTORY_MENU_TEXT = {}
 VICTORY_MENU_IMAGES = {}
 
+GAME_ENDING_TEXT = {}
+GAME_ENDING_IMAGES = {}
+
 
 #------------Window settings------------# 
 
@@ -77,7 +80,7 @@ player = {
     "health": 10, 
     "damage": 1, 
     "defence": 0, 
-    "gold": 10, 
+    "gold": 100, 
     
     # The spoon has a damage of 1
     "weapon": "Spoon",
@@ -85,12 +88,13 @@ player = {
     # weapon multiplier = 1 + (weapon_damage - 1)/4
     "weapon_multiplier": 1,
     
+    "weapon_image": "Images/spoon.png",
     'seasoned': False, 
     "chicken": False,
     "sprite": "Images/chef-character.png",
 
     'egg': "Images/mystery.png",
-    'milk': "Images/mystery.png",
+    'butter': "Images/mystery.png",
     'flour': "Images/mystery.png",
     'sugar': "Images/mystery.png"
 }
@@ -268,7 +272,7 @@ def upgrade_menu(stats: list):
 
     create_image("gold", UPGRADE_MENU_IMAGES, "Images/coin.png", (900,75), transparent=True, scaling=[100,100])
     create_image("upgrade_back", UPGRADE_MENU_IMAGES, "Images/arrow.png", (110, 80), transparent=True, scaling=[300, 300])
-
+    create_image('training_dummy', UPGRADE_MENU_IMAGES, "Images/training_dummy.png", (800, 420), transparent=True, scaling=[400, 400])
 
 def shop_menu(items: list):
     """
@@ -445,6 +449,7 @@ def main():
     EVENT_MENU_TEXT = {}
     EVENT_MENU_IMAGES = {}
     
+    ingredient = "Images/mystery.png"
     weapons = {
         "Chopsticks": {"cost": 5, "damage": 2},
         "Spatula": {"cost": 8, "damage": 3},
@@ -461,16 +466,16 @@ def main():
     # via their respective functions
     main_menu()
     shop_menu([
-                ["cs", "Images/chopstick.png", (200, 320), [225,225]],
+                ["cs", "Images/chopsticks.png", (200, 320), [225,225]],
                 ["sp", "Images/spatula.png", (415, 280), [335, 335]],
                 ["kf", "Images/knife.png", (665, 280), [335,335]],
-                ["fp", "Images/frying-pan.png", (900, 320), [225,225]]
+                ["fp", "Images/frying pan.png", (900, 320), [225,225]]
 
             ])
     upgrade_menu([
                 ["health", "Images/heart.png", (100, 300), [200,200]],
                 ["defence", "Images/shield.png", (100, 450), [200,200]],
-                ["damage", "Images/sword.png", (100, 600), [200,200]]
+                ["damage", "Images/sword.png", (100, 600), [200,200]],
             ])
         
     # Important flags and accumulators
@@ -829,7 +834,7 @@ def main():
                     elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["upgrade"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["upgrade"]) == True:
                         SCREEN_STATUS = "UPGRADE"
 
-
+    
                 if SCREEN_STATUS == "FIGHT":
 
                     print(enemy_cooldown)
@@ -845,6 +850,31 @@ def main():
                         if wave == 5:
                             enemy_name = "Burger King"
                             enemy_sprite = "Images/burger_king.png"
+                            ingredient = "Images/egg.png"
+                            enemy_sprite_size = [500, 500]
+                            create_enemy(enemy_name, 20, 2)
+                            in_boss_battle = True
+                        
+                        if wave == 10:
+                            enemy_name = "Ronald McDonald"
+                            enemy_sprite = "Images/ronald.png"
+                            ingredient = "Images/butter.png"
+                            enemy_sprite_size = [500, 500]
+                            create_enemy(enemy_name, 20, 2)
+                            in_boss_battle = True
+
+                        if wave == 15:
+                            enemy_name = "Colonel Sanders"
+                            enemy_sprite = "Images/colonel.png"
+                            ingredient = "Images/flour.png"
+                            enemy_sprite_size = [500, 500]
+                            create_enemy(enemy_name, 20, 2)
+                            in_boss_battle = True
+
+                        if wave == 20:
+                            enemy_name = "Gordon Ramsay"
+                            enemy_sprite = "Images/gordon.png"
+                            ingredient = "Images/sugar.png"
                             enemy_sprite_size = [500, 500]
                             create_enemy(enemy_name, 20, 2)
                             in_boss_battle = True
@@ -977,8 +1007,8 @@ def main():
                                         print("VICTORY")
                                         enemy_hp = 0
                                                 
-                                        create_text("slain", VICTORY_MENU_TEXT, f'YOU HAVE SLAIN {enemy_name.upper()}', "Times New Roman", 48, (0, 0, 0), (540, 300))
-                                        create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 400))
+                                        create_text("slain", VICTORY_MENU_TEXT, f'YOU HAVE SLAIN {enemy_name.upper()}', "Times New Roman", 60, (0, 0, 0), (540, 150))
+                                        create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 250))
 
                                         SCREEN_STATUS = "VICTORY"
 
@@ -989,6 +1019,18 @@ def main():
                                         
                                         # End the boss battle, if applicable
                                         if in_boss_battle == True:
+                                            create_text("dialogue 1", VICTORY_MENU_TEXT, "But wait...", "Times New Roman", 48, (0, 0, 0), (540, 225))
+                                            create_text("dialogue 2", VICTORY_MENU_TEXT, "...The boss drops an ingredient...", "Times New Roman", 48, (0, 0, 0), (540, 290))
+                                            create_image("ingredient", VICTORY_MENU_IMAGES, ingredient, (540, 460), transparent=True, scaling=[300,300])
+                                            create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 650))
+                                            if wave == 6:  
+                                                player['egg'] = ingredient
+                                            elif wave == 11:
+                                                player['butter'] = ingredient
+                                            elif wave == 16:
+                                                player['flour'] = ingredient
+                                            elif wave == 21:
+                                                player['sugar'] = ingredient
                                             in_boss_battle = False
 
 
@@ -1003,6 +1045,9 @@ def main():
                     # If you are on the victory screen,
                     # allow the continue button to switch to
                     # the main menu
+
+                    # Displays ingredient if after a boss wave
+
                     if check_button_coords(mouse_pos, VICTORY_MENU_TEXT["continue"]):
                         SCREEN_STATUS = "MAIN"
                 
@@ -1057,6 +1102,7 @@ def main():
                             create_text("buy_note", SHOP_MENU_TEXT, "You cannot afford to buy: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
                         else:    
                             player["weapon"] = shop_choice
+                            player['weapon_image'] = "Images/" + shop_choice.lower() + ".png"
                             player['gold'] -= weapons[shop_choice]["cost"]
                             player["weapon_multiplier"] = 1 + (weapons[shop_choice]["damage"] - 1)/4
                             weapons[shop_choice]["cost"] = "SOLD :("
@@ -1064,18 +1110,36 @@ def main():
       
 
 
+            # Updating main menu info (player stats)
+            # Updating player sprite
+            create_image("player", MAIN_MENU_IMAGES, player["sprite"], (225, 360), transparent=True, scaling=[600, 600])
+
+            # Gold count
             create_text("gold_count", MAIN_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75))
             create_text("gold_count", UPGRADE_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75))
             create_text("gold_count", SHOP_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75)) 
 
-            create_image("heart", MAIN_MENU_IMAGES, "Images/heart.png", (800, 200), transparent=True, scaling=[100, 100])
-            create_image("shield", MAIN_MENU_IMAGES, "Images/shield.png", (800, 275), transparent=True, scaling=[100, 100])
-            create_image("sword", MAIN_MENU_IMAGES, "Images/sword.png", (800, 350), transparent=True, scaling=[100, 100])
-            create_text("hp_stat", MAIN_MENU_TEXT, str(player['health']), "Times New Roman", 48, (0, 0, 0), (900, 200))
-            create_text("def_stat", MAIN_MENU_TEXT, str(player['defence']), "Times New Roman", 48, (0, 0, 0), (900, 275))
-            create_text("dmg_stat", MAIN_MENU_TEXT, str(player['damage']), "Times New Roman", 48, (0, 0, 0), (900, 350))
+            # Base stats
+            create_image("heart", MAIN_MENU_IMAGES, "Images/heart.png", (800, 170), transparent=True, scaling=[100, 100])
+            create_image("shield", MAIN_MENU_IMAGES, "Images/shield.png", (800, 245), transparent=True, scaling=[100, 100])
+            create_image("sword", MAIN_MENU_IMAGES, "Images/sword.png", (800, 320), transparent=True, scaling=[100, 100])
+            create_text("hp_stat", MAIN_MENU_TEXT, str(player['health']), "Times New Roman", 48, (0, 0, 0), (900, 170))
+            create_text("def_stat", MAIN_MENU_TEXT, str(player['defence']), "Times New Roman", 48, (0, 0, 0), (900, 245))
+            create_text("dmg_stat", MAIN_MENU_TEXT, str(player['damage']), "Times New Roman", 48, (0, 0, 0), (900, 320))
 
+            # Collected ingredients
+            create_text('ingredients', MAIN_MENU_TEXT, "Ingredients:", "Times New Roman", 48, (0, 0, 0), (850, 385))
+            create_image("egg", MAIN_MENU_IMAGES, player['egg'], (800, 450), transparent=True, scaling=[100, 100])
+            create_image("butter", MAIN_MENU_IMAGES, player['butter'], (900, 450), transparent=True, scaling=[100, 100])
+            create_image("flour", MAIN_MENU_IMAGES, player['flour'], (800, 530), transparent=True, scaling=[100, 100])
+            create_image("sugar", MAIN_MENU_IMAGES, player['sugar'], (900, 530), transparent=True, scaling=[100, 100])
 
+            # Weapon
+            create_text('weapon', MAIN_MENU_TEXT, player['weapon'], "Times New Roman", 48, (0, 0, 0), (540, 240))
+            create_image("weapon_sprite", MAIN_MENU_IMAGES, player['weapon_image'], (540, 420), transparent=True, scaling=[300,300])
+
+            # Wave
+            create_text('wave', MAIN_MENU_TEXT, "Wave: " + str(wave), "Times New Roman", 60, (200, 0, 0), (540, 120))
             
 
         # Screen Updates:
