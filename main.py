@@ -628,6 +628,7 @@ def main():
                         if event_number == 2:
                             if ending_screen == False:
                                 create_text("enemy health", EVENT_MENU_TEXT, "FOOD MARKET", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                                create_text("dialogue 1", EVENT_MENU_TEXT, "You can buy one item for free...", "Times New Roman", 40, (255, 0, 0), (540, 150))
                                 create_image("chicken", EVENT_MENU_IMAGES, "Images/chicken.png", (200, 360), transparent=True, scaling=[200, 200])
                                 create_image("milk", EVENT_MENU_IMAGES, "Images/milk.png", (400, 360), transparent=True, scaling=[200, 200])
                                 create_image("rice", EVENT_MENU_IMAGES, "Images/rice.png", (600, 360), transparent=True, scaling=[200, 200])
