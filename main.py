@@ -2,6 +2,7 @@
 # PyGame Imports and Initialization
 import pygame
 import pygame.display as display
+from math import ceil
 from random import randint
 clock = pygame.time.Clock()
 pygame.init()
@@ -15,6 +16,12 @@ TEXT_NAME : [TEXT_OBJECT, TEXT_COORDINATES]
 Similarly, all images will be stored in various image dictionaries, for each screen.
 IMAGE_NAME : [IMAGE_OBJECT, IMAGE_COORDINATES]
 """
+TITLE_MENU_TEXT = {}
+TITLE_MENU_IMAGES = {}
+
+TUTORIAL_MENU_TEXT = {}
+TUTORIAL_MENU_IMAGES = {}
+
 MAIN_MENU_TEXT = {}
 MAIN_MENU_IMAGES = {}
 
@@ -442,7 +449,7 @@ def random_event():
 
 def main():
 
-    global SCREEN_STATUS, wave, weapons, player, in_boss_battle
+    global SCREEN_STATUS, wave, weapons, player, in_boss_battle, FIGHT_MENU_TEXT
     global TEMP_ENEMIES, in_battle, in_event, BOSS_MOVEMENT_FACTOR
     global clock, last_frame, last_enemy, enemy_cooldown
 
@@ -458,7 +465,7 @@ def main():
     }
     
     # Initialize the game for the first playthrough
-    SCREEN_STATUS = "MAIN"
+    SCREEN_STATUS = "TITLE"
     wave = 0
     screen_count = 1
 
@@ -499,7 +506,15 @@ def main():
     # Actual Game Loop
     while running:
 
-        # User Interface
+        # User Interfaces
+        if SCREEN_STATUS == "TUTORIAL":
+            TEXT = TUTORIAL_MENU_TEXT
+            IMAGES = TUTORIAL_MENU_IMAGES
+
+        if SCREEN_STATUS == "TITLE":
+            TEXT = TITLE_MENU_TEXT
+            IMAGES = TITLE_MENU_IMAGES
+
         if SCREEN_STATUS == "MAIN":
             TEXT = MAIN_MENU_TEXT
             IMAGES = MAIN_MENU_IMAGES
@@ -811,8 +826,40 @@ def main():
                         except KeyError:
                             pass
                             
+            # Title Screen and Tutorial Sequence
+            if SCREEN_STATUS == "TITLE":
+                WIN.fill((255, 255, 255))
+                create_text("title", TITLE_MENU_TEXT, "MEDIEVAL MUNCHIES", "Times New Roman", 64, (0, 0, 0), (540, 200+50))
+                create_text("start", TITLE_MENU_TEXT, "[START]", "Times New Roman", 64, (0, 255, 0), (540-64*3, 360+50))
+                create_text("quit", TITLE_MENU_TEXT, "[QUIT]", "Times New Roman", 64, (255, 0, 0), (540+64*3, 360+50))
+
+
             # Mouse clicked
             if event.type == pygame.MOUSEBUTTONDOWN:
+
+                if SCREEN_STATUS == "TITLE":
+                    
+                    if check_button_coords(mouse_pos, TITLE_MENU_TEXT["start"]):
+                        SCREEN_STATUS = "TUTORIAL" 
+                        create_text("1", TUTORIAL_MENU_TEXT, "You are a Chef for the Banjevic Aristocracy.", "Times New Roman", 36, (0, 0, 0), (540, 50))
+                        create_text("2", TUTORIAL_MENU_TEXT, "King Banjevic has decreed you to bake him a cake for his birthday.", "Times New Roman", 36, (0, 0, 0), (540, 50+48*2))   
+                        create_text("3", TUTORIAL_MENU_TEXT, "(Everyone keeps forgetting...)", "Times New Roman", 36, (0, 0, 0), (540, 50+48*4))   
+                        create_text("4", TUTORIAL_MENU_TEXT, "Alas, what are thee to do but listen?", "Times New Roman", 36, (0, 0, 0), (540, 50+48*6))   
+                        create_text("5", TUTORIAL_MENU_TEXT, "Go, gather ingredients, and conquer the world!", "Times New Roman", 36, (0, 0, 0), (540, 50+48*8))
+                        create_text("6", TUTORIAL_MENU_TEXT, ">> Click Here to Start <<", "Times New Roman", 36, (255, 0, 0), (540, 600))
+                        create_image("7", TUTORIAL_MENU_IMAGES, "Images/good-luck.png", (900, 600), transparent=True, scaling=[200,200]) 
+
+                    
+                    if check_button_coords(mouse_pos, TITLE_MENU_TEXT["quit"]):
+                        running = False
+
+                
+                if SCREEN_STATUS == "TUTORIAL":
+                    
+                    if check_button_coords(mouse_pos, TUTORIAL_MENU_TEXT["6"]):
+                        wave = 0
+                        SCREEN_STATUS = "FIGHT"
+
 
                 if SCREEN_STATUS == "UPGRADE":
                     upgrade_choice = None
@@ -968,6 +1015,10 @@ def main():
                                 # Render the enemy health and player health, defense, attack stats
                                 create_text("enemy health", FIGHT_MENU_TEXT, f"{enemy_name.upper()} APPROACHES", "Times New Roman", 64, (255, 0, 0), (540, 50))
 
+                                # Extra tutorial text
+                                if wave == 0:
+                                    create_text("tutorial_clicks", FIGHT_MENU_TEXT, "← Click on me!", "Times New Roman", 48, (0, 0, 0), (825, 225))
+
                                 create_image("player health", FIGHT_MENU_IMAGES, "Images/heart.png", (805, 680), transparent=True, scaling=[75,75])
                                 create_text("player health", FIGHT_MENU_TEXT, f"Health: {player_hp}", "Times New Roman", 48, (0, 0, 0), (950, 675))
 
@@ -979,6 +1030,7 @@ def main():
                                 in_battle = True
                                 enemy_cooldown = 0
                                 print(f"Enemy Health: {enemy_hp}")
+
                                 
                             else:
 
@@ -1004,6 +1056,9 @@ def main():
 
                                 # Check if the enemy has been clicked
                                 if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES[enemy_name]) == True:
+
+                                    if wave == 0:
+                                        create_text("tutorial_health", FIGHT_MENU_TEXT, "My health!!!", "Times New Roman", 48, (255, 0, 0), (300, 225))
                                         
                                     # Damage calculations
                                     player_damage = player['damage'] * player['weapon_multiplier']
@@ -1067,7 +1122,7 @@ def main():
                                 # Update the enemy and player health text
                                 # Floor and round each value to avoid floating point errors
                                 create_text("player health", FIGHT_MENU_TEXT, f"Health: {round(player_hp)}", "Times New Roman", 48, (0, 0, 0), (950, 675))
-                                create_text("enemy health", FIGHT_MENU_TEXT, f"Health: {round(enemy_hp)}", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                                create_text("enemy health", FIGHT_MENU_TEXT, f"Health: {ceil(enemy_hp)}", "Times New Roman", 64, (255, 0, 0), (540, 50))
 
                 elif wave > 20:
                     SCREEN_STATUS = "ENDING"
@@ -1192,9 +1247,6 @@ def main():
                             if check_button_coords(mouse_pos, GAME_ENDING_IMAGES["chicken-bucket"]) == True:
                                 screen_count += 2
 
-
-
-
                     if screen_count == 3:
                         GAME_ENDING_IMAGES = {}
                         GAME_ENDING_TEXT = {}
@@ -1211,17 +1263,6 @@ def main():
                         create_text("dialogue 2", GAME_ENDING_TEXT, "10/10!", "Times New Roman", 80, (255, 0, 0), (440+100, 200))
                         create_image("chicken-bucket", GAME_ENDING_IMAGES, "Images/chicken-bucket.png", (540, 430), transparent=True, scaling=[400,400])   
 
-
-
-                            
-
-                    
-                            
-
-                    
-                        
-
-
             # Updating main menu info (player stats)
             # Updating player sprite
             create_image("player", MAIN_MENU_IMAGES, player["sprite"], (225, 360), transparent=True, scaling=[600, 600])
@@ -1232,19 +1273,19 @@ def main():
             create_text("gold_count", SHOP_MENU_TEXT, str(player['gold']), "Times New Roman", 48, (0, 0, 0), (975, 75)) 
 
             # Base stats
-            create_image("heart", MAIN_MENU_IMAGES, "Images/heart.png", (800, 170), transparent=True, scaling=[100, 100])
-            create_image("shield", MAIN_MENU_IMAGES, "Images/shield.png", (800, 245), transparent=True, scaling=[100, 100])
-            create_image("sword", MAIN_MENU_IMAGES, "Images/sword.png", (800, 320), transparent=True, scaling=[100, 100])
-            create_text("hp_stat", MAIN_MENU_TEXT, str(player['health']), "Times New Roman", 48, (0, 0, 0), (900, 170))
-            create_text("def_stat", MAIN_MENU_TEXT, str(player['defence']), "Times New Roman", 48, (0, 0, 0), (900, 245))
-            create_text("dmg_stat", MAIN_MENU_TEXT, str(player['damage']), "Times New Roman", 48, (0, 0, 0), (900, 320))
+            create_image("heart", MAIN_MENU_IMAGES, "Images/heart.png", (900, 170), transparent=True, scaling=[100, 100])
+            create_image("shield", MAIN_MENU_IMAGES, "Images/shield.png", (900, 245), transparent=True, scaling=[100, 100])
+            create_image("sword", MAIN_MENU_IMAGES, "Images/sword.png", (900, 320), transparent=True, scaling=[100, 100])
+            create_text("hp_stat", MAIN_MENU_TEXT, str(player['health']), "Times New Roman", 48, (0, 0, 0), (975, 170))
+            create_text("def_stat", MAIN_MENU_TEXT, str(player['defence']), "Times New Roman", 48, (0, 0, 0), (975, 245))
+            create_text("dmg_stat", MAIN_MENU_TEXT, str(player['damage']), "Times New Roman", 48, (0, 0, 0), (975, 320))
 
             # Collected ingredients
-            create_text('ingredients', MAIN_MENU_TEXT, "Ingredients:", "Times New Roman", 48, (0, 0, 0), (850, 385))
-            create_image("egg", MAIN_MENU_IMAGES, player['egg'], (800, 450), transparent=True, scaling=[100, 100])
-            create_image("butter", MAIN_MENU_IMAGES, player['butter'], (900, 450), transparent=True, scaling=[100, 100])
-            create_image("flour", MAIN_MENU_IMAGES, player['flour'], (800, 530), transparent=True, scaling=[100, 100])
-            create_image("sugar", MAIN_MENU_IMAGES, player['sugar'], (900, 530), transparent=True, scaling=[100, 100])
+            create_text('ingredients', MAIN_MENU_TEXT, "Ingredients:", "Times New Roman", 48, (0, 0, 0), (925, 385))
+            create_image("egg", MAIN_MENU_IMAGES, player['egg'], (800+75, 450), transparent=True, scaling=[75, 75])
+            create_image("butter", MAIN_MENU_IMAGES, player['butter'], (900+75, 450), transparent=True, scaling=[75, 75])
+            create_image("flour", MAIN_MENU_IMAGES, player['flour'], (800+75, 530), transparent=True, scaling=[75, 75])
+            create_image("sugar", MAIN_MENU_IMAGES, player['sugar'], (900+75, 530), transparent=True, scaling=[75, 75])
 
             # Weapon
             create_text('weapon', MAIN_MENU_TEXT, player['weapon'], "Times New Roman", 48, (0, 0, 0), (540, 240))
@@ -1259,16 +1300,18 @@ def main():
         # Renders all buttons onto the game window
 
         # Manage background colors
+        if SCREEN_STATUS == "TUTORIAL":
+            WIN.fill((255, 255, 255))
         if SCREEN_STATUS == "MAIN":
             WIN.fill((255, 255, 228))
         elif SCREEN_STATUS == "SHOP":
             WIN.fill((133, 94, 66))
         if SCREEN_STATUS == "FIGHT" or SCREEN_STATUS == "EVENT":
-            WIN.fill((124, 252, 0))
+            WIN.fill((21, 71, 52))
         if SCREEN_STATUS == "UPGRADE":
             WIN.fill((124, 0, 200))
         if SCREEN_STATUS == "VICTORY":
-            WIN.fill((255, 255, 255))
+            WIN.fill((0, 255, 0))
         if SCREEN_STATUS == "DEATH":
             WIN.fill((0, 0, 0))
         if SCREEN_STATUS == "ENDING":
