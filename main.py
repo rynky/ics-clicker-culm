@@ -69,7 +69,7 @@ Red = (255, 0, 0)
 Green = (0, 255, 0)
 Blue = (0, 0, 255)
 """
-ENEMYHP_SCALING = 1.4
+ENEMYHP_SCALING = 1.2
 ENEMYDMG_SCALING = 1.1
 
 in_battle = False
@@ -277,9 +277,10 @@ def upgrade_menu(stats: list):
             (stats[i][2][0]+350, stats[i][2][1])   
         )
 
+    create_text("title", UPGRADE_MENU_TEXT, "A witch offers you her blessings...", "Times New Roman", 40, (0, 255, 0), (540, 75))
     create_image("gold", UPGRADE_MENU_IMAGES, "Images/coin.png", (900,75), transparent=True, scaling=[100,100])
     create_image("upgrade_back", UPGRADE_MENU_IMAGES, "Images/arrow.png", (110, 80), transparent=True, scaling=[300, 300])
-    create_image('training_dummy', UPGRADE_MENU_IMAGES, "Images/training_dummy.png", (800, 420), transparent=True, scaling=[400, 400])
+    create_image('training_dummy', UPGRADE_MENU_IMAGES, "Images/witch.png", (800, 420), transparent=True, scaling=[400, 400])
 
 def shop_menu(items: list):
     """
@@ -458,10 +459,10 @@ def main():
     
     ingredient = "Images/mystery.png"
     weapons = {
-        "Chopsticks": {"cost": 5, "damage": 2},
-        "Spatula": {"cost": 8, "damage": 3},
-        "Knife": {"cost": 10, "damage": 4},
-        "Frying Pan": {"cost": 12, "damage": 5}
+        "Chopsticks": {"cost": 3, "damage": 2},
+        "Spatula": {"cost": 4, "damage": 3},
+        "Knife": {"cost": 6, "damage": 4},
+        "Frying Pan": {"cost": 8, "damage": 5}
     }
     
     # Initialize the game for the first playthrough
@@ -877,18 +878,18 @@ def main():
                         if player["gold"] >= STATS_INFO[upgrade_choice]["cost"]:
                             if upgrade_choice == "defence":
                                 if player["defence"] >= STATS_INFO['defence']['max']:
-                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "Defence is maxed!", "Times New Roman", 48, (0, 0, 0), (540, 75))
+                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "Defence is maxed!", "Times New Roman", 48, (0, 0, 0), (540, 150))
                                 else:
                                     player[upgrade_choice] += STATS_INFO[upgrade_choice]['increment']
                                     player["gold"] -= STATS_INFO[upgrade_choice]['cost']
-                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 75))    
+                                    create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 150))    
                             else:
                                 player[upgrade_choice] += STATS_INFO[upgrade_choice]['increment']
                                 player["gold"] -= STATS_INFO[upgrade_choice]['cost']
-                                create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 75))   
+                                create_text("upgrade_note", UPGRADE_MENU_TEXT, "You upgraded: " + upgrade_choice, "Times New Roman", 48, (0, 0, 0), (540, 150))   
                 
                         else:
-                            create_text("upgrade_note", UPGRADE_MENU_TEXT, "You don't have enough gold!", "Times New Roman", 48, (0, 0, 0), (540, 75))                           
+                            create_text("upgrade_note", UPGRADE_MENU_TEXT, "You don't have enough gold!", "Times New Roman", 48, (0, 0, 0), (540, 150))                           
 
 
                 # Function for each menu
@@ -918,7 +919,7 @@ def main():
                                 enemy_sprite = "Images/burger_king.png"
                                 ingredient = "Images/egg.png"
                                 enemy_sprite_size = [500, 500]
-                                create_enemy(enemy_name, 20, 2)
+                                create_enemy(enemy_name,  30, 2)
                                 in_boss_battle = True
                             
                             if wave == 10:
@@ -926,7 +927,7 @@ def main():
                                 enemy_sprite = "Images/ronald.png"
                                 ingredient = "Images/butter.png"
                                 enemy_sprite_size = [500, 500]
-                                create_enemy(enemy_name, 20, 2)
+                                create_enemy(enemy_name, 75, 3)
                                 in_boss_battle = True
 
                             if wave == 15:
@@ -934,7 +935,7 @@ def main():
                                 enemy_sprite = "Images/colonel.png"
                                 ingredient = "Images/flour.png"
                                 enemy_sprite_size = [500, 500]
-                                create_enemy(enemy_name, 20, 2)
+                                create_enemy(enemy_name, 150, 4)
                                 in_boss_battle = True
 
                             if wave == 20:
@@ -942,7 +943,7 @@ def main():
                                 enemy_sprite = "Images/gordon.png"
                                 ingredient = "Images/sugar.png"
                                 enemy_sprite_size = [500, 500]
-                                create_enemy(enemy_name, 20, 2)
+                                create_enemy(enemy_name, 300, 5)
                                 in_boss_battle = True
 
                         elif wave % 10 == 3 or wave % 10 == 8:
@@ -1128,7 +1129,7 @@ def main():
                                 create_text("player health", FIGHT_MENU_TEXT, f"Health: {round(player_hp)}", "Times New Roman", 48, (0, 0, 0), (950, 675))
                                 create_text("enemy health", FIGHT_MENU_TEXT, f"Health: {ceil(enemy_hp)}", "Times New Roman", 64, (255, 0, 0), (540, 50))
 
-                elif wave > 20:
+                elif wave > 20 and SCREEN_STATUS != "DEATH":
                     SCREEN_STATUS = "ENDING"
 
                 if SCREEN_STATUS == "VICTORY":
