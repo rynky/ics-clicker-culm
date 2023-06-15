@@ -359,7 +359,7 @@ def random_event():
     """
     global completed_events, wave, SCREEN_STATUS
     
-    number = 1
+    number = randint(1,4)
     while number in completed_events:
         number = randint(1,4)
         
@@ -460,6 +460,19 @@ def main():
     # Initialize the game for the first playthrough
     SCREEN_STATUS = "MAIN"
     wave = 0
+    screen_count = 1
+
+    # TESTING (DELETE WHEN SUBMITTING)
+    """
+    wave = 14
+    player['seasoned'] = True
+    enemy_name = "Dummy"
+    enemy_sprite = "Images/training_dummy.png"
+    enemy_sprite_size = [400, 400] 
+    create_enemy(enemy_name, 10, 1)
+    last_enemy = enemy_name
+    """
+
     # manage_music()
 
     # Initialize the images and text for each menu
@@ -514,7 +527,12 @@ def main():
         elif SCREEN_STATUS == "DEATH":
             TEXT = DEAD_MENU_TEXT
             IMAGES = DEAD_MENU_IMAGES
-        
+
+        elif SCREEN_STATUS == "ENDING":
+            TEXT = GAME_ENDING_TEXT
+            IMAGES = GAME_ENDING_IMAGES 
+
+
         # Track the (x, y) coordinates of the mouse
         # relative to the game window
         mouse_pos = pygame.mouse.get_pos()
@@ -835,213 +853,226 @@ def main():
                     elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["upgrade"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["upgrade"]) == True:
                         SCREEN_STATUS = "UPGRADE"
 
-    
-                if SCREEN_STATUS == "FIGHT":
-
-                    print(enemy_cooldown)
-
-                    if wave == 0:
-                        enemy_name = "Dummy"
-                        enemy_sprite = "Images/training_dummy.png"
-                        enemy_sprite_size = [400, 400] 
-                        create_enemy(enemy_name, 10, 1)
-                    
-                    elif wave % 5 == 0:
-
-                        if wave == 5:
-                            enemy_name = "Burger King"
-                            enemy_sprite = "Images/burger_king.png"
-                            ingredient = "Images/egg.png"
-                            enemy_sprite_size = [500, 500]
-                            create_enemy(enemy_name, 20, 2)
-                            in_boss_battle = True
-                        
-                        if wave == 10:
-                            enemy_name = "Ronald McDonald"
-                            enemy_sprite = "Images/ronald.png"
-                            ingredient = "Images/butter.png"
-                            enemy_sprite_size = [500, 500]
-                            create_enemy(enemy_name, 20, 2)
-                            in_boss_battle = True
-
-                        if wave == 15:
-                            enemy_name = "Colonel Sanders"
-                            enemy_sprite = "Images/colonel.png"
-                            ingredient = "Images/flour.png"
-                            enemy_sprite_size = [500, 500]
-                            create_enemy(enemy_name, 20, 2)
-                            in_boss_battle = True
-
-                        if wave == 20:
-                            enemy_name = "Gordon Ramsay"
-                            enemy_sprite = "Images/gordon.png"
-                            ingredient = "Images/sugar.png"
-                            enemy_sprite_size = [500, 500]
-                            create_enemy(enemy_name, 20, 2)
-                            in_boss_battle = True
-
-                    elif wave % 10 == 3 or wave % 10 == 8:
-
-                        # Switch to event screen
-                        SCREEN_STATUS = "EVENT"
-
-                    else:
-                        
-                        # Only generate a new enemy
-                        # if the battle process is not 
-                        # currently running
-                        if in_battle == False:
-                            new_enemy = generate_enemy(TEMP_ENEMIES[last_enemy])
-                        
-                        enemy_name = new_enemy["name"]
-                        enemy_sprite = new_enemy["sprite"]
-                        enemy_sprite_size = [400, 400]
-                        create_enemy(enemy_name, new_enemy["hp"], new_enemy["dmg"])
-                        
-                    # Battle process
-                    # Ensures that an event has not been triggered,
-                    # by checking the SCREEN_STATUS
+                if wave <= 20:
                     if SCREEN_STATUS == "FIGHT":
 
-                        # If the player has died in battle
-                        if in_battle == True and round(player_hp) <= 0:
+                        print(enemy_cooldown)
 
-                            # Reset the Death menus
-                            DEAD_MENU_TEXT = {}
-                            DEAD_MENU_IMAGES = {}
+                        if wave == 0:
+                            enemy_name = "Dummy"
+                            enemy_sprite = "Images/training_dummy.png"
+                            enemy_sprite_size = [400, 400] 
+                            create_enemy(enemy_name, 10, 1)
+                        
+                        elif wave % 5 == 0:
 
-                            # End the battle process
-                            in_battle = False
-                            wave += 1
-                            last_enemy = enemy_name
-                                        
-                            # End the boss battle, if applicable
-                            if in_boss_battle == True:
-                                in_boss_battle = False
-
-                            SCREEN_STATUS = "DEATH"
-                            last_enemy = enemy_name
+                            if wave == 5:
+                                enemy_name = "Burger King"
+                                enemy_sprite = "Images/burger_king.png"
+                                ingredient = "Images/egg.png"
+                                enemy_sprite_size = [500, 500]
+                                create_enemy(enemy_name, 20, 2)
+                                in_boss_battle = True
                             
-                            WIN.fill((0, 0, 0))
-                            
-                            # Death Menu Text 
-                            create_text("game over", DEAD_MENU_TEXT, f'YOU DIED TO {last_enemy.upper()}, BUT', "Times New Roman", 48, (255, 255, 255), (540, 300-75))
-                            create_text("heroes never die", DEAD_MENU_TEXT, f'THEY SAY THAT HEROES NEVER DIE...', "Times New Roman", 48, (255, 255, 255), (540, 350-75))
-                            create_text("try again", DEAD_MENU_TEXT, f'Try again?', "Times New Roman", 48, (255, 0, 0), (540, 450-75))
-                            create_text("yes", DEAD_MENU_TEXT, '[Yes]', "Times New Roman", 48, (255, 255, 255), (540-48*2, 550-75))
-                            create_text("no", DEAD_MENU_TEXT, '[No]', "Times New Roman", 48, (255, 255, 255), (540+48*2, 550-75))
-                    
-                        if in_battle == False:
-                                
-                            # Reset the menu images and text
-                            FIGHT_MENU_IMAGES = {}
-                            FIGHT_MENU_TEXT = {}
+                            if wave == 10:
+                                enemy_name = "Ronald McDonald"
+                                enemy_sprite = "Images/ronald.png"
+                                ingredient = "Images/butter.png"
+                                enemy_sprite_size = [500, 500]
+                                create_enemy(enemy_name, 20, 2)
+                                in_boss_battle = True
 
-                            # Render the enemy sprite
-                            create_image(enemy_name, FIGHT_MENU_IMAGES, enemy_sprite, (540, 360), transparent=True, scaling=enemy_sprite_size)
+                            if wave == 15:
+                                enemy_name = "Colonel Sanders"
+                                enemy_sprite = "Images/colonel.png"
+                                ingredient = "Images/flour.png"
+                                enemy_sprite_size = [500, 500]
+                                create_enemy(enemy_name, 20, 2)
+                                in_boss_battle = True
 
-                            # Create temporary variables for the battle
-                            player_hp = player["health"]
+                            if wave == 20:
+                                enemy_name = "Gordon Ramsay"
+                                enemy_sprite = "Images/gordon.png"
+                                ingredient = "Images/sugar.png"
+                                enemy_sprite_size = [500, 500]
+                                create_enemy(enemy_name, 20, 2)
+                                in_boss_battle = True
 
-                            enemy_hp = TEMP_ENEMIES[enemy_name]["hp"]
-                            enemy_dmg = TEMP_ENEMIES[enemy_name]["dmg"]
-                            print(enemy_dmg)
+                        elif wave % 10 == 3 or wave % 10 == 8:
 
-                            # Render the enemy health and player health, defense, attack stats
-                            create_text("enemy health", FIGHT_MENU_TEXT, f"{enemy_name.upper()} APPROACHES", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                            # Switch to event screen
+                            SCREEN_STATUS = "EVENT"
 
-                            create_image("player health", FIGHT_MENU_IMAGES, "Images/heart.png", (805, 680), transparent=True, scaling=[75,75])
-                            create_text("player health", FIGHT_MENU_TEXT, f"Health: {player_hp}", "Times New Roman", 48, (0, 0, 0), (950, 675))
-
-                            create_text("player defense", FIGHT_MENU_TEXT, f"Defense: {player['defence']}", "Times New Roman", 48, (0, 0, 0), (540, 675))
-                            
-                            create_text("player damage", FIGHT_MENU_TEXT, f"Damage: {player['damage'] * player['weapon_multiplier']}", "Times New Roman", 48, (0, 0, 0), (150, 675))
-                                
-                            # Begin the Battle Loop
-                            in_battle = True
-                            enemy_cooldown = 0
-                            print(f"Enemy Health: {enemy_hp}")
-                            
                         else:
+                            
+                            # Only generate a new enemy
+                            # if the battle process is not 
+                            # currently running
+                            if in_battle == False:
+                                new_enemy = generate_enemy(TEMP_ENEMIES[last_enemy])
+                            
+                            enemy_name = new_enemy["name"]
+                            enemy_sprite = new_enemy["sprite"]
+                            enemy_sprite_size = [400, 400]
+                            create_enemy(enemy_name, new_enemy["hp"], new_enemy["dmg"])
+                            
+                        # Battle process
+                        # Ensures that an event has not been triggered,
+                        # by checking the SCREEN_STATUS
+                        if SCREEN_STATUS == "FIGHT":
 
-                            # Increment the cooldown with respect
-                            # to the frame rate of the game
-                            enemy_cooldown += last_frame
+                            # If the player has died in battle
+                            if in_battle == True and round(player_hp) <= 0:
 
-                            # If the cooldown has reached <arbitrary value>, 
-                            # deal damage to the player
-                            if enemy_cooldown > 2 * last_frame: 
-                                enemy_cooldown = 0
-                                player_hp = round(player_hp - (enemy_dmg * (1 - player["defence"]/10)), 2)
-                                
-                                # Boss Functionalities
+                                # Reset the Death menus
+                                DEAD_MENU_TEXT = {}
+                                DEAD_MENU_IMAGES = {}
+
+                                # End the battle process
+                                in_battle = False
+                                wave += 1
+                                last_enemy = enemy_name
+                                            
+                                # End the boss battle, if applicable
                                 if in_boss_battle == True:
-                                    
-                                    # Allows the enemy to teleport across the map 
-                                    # while it deals damage
-                                    new_coordinates = (randint(500, 580), randint(300, 420) * BOSS_MOVEMENT_FACTOR)
+                                    in_boss_battle = False
+
+                                SCREEN_STATUS = "DEATH"
+                                last_enemy = enemy_name
                                 
-                                    # Re-render the image
-                                    create_image(enemy_name, FIGHT_MENU_IMAGES, enemy_sprite, new_coordinates, transparent=True, scaling=enemy_sprite_size)
-
-                            # Check if the enemy has been clicked
-                            if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES[enemy_name]) == True:
+                                WIN.fill((0, 0, 0))
+                                
+                                # Death Menu Text 
+                                create_text("game over", DEAD_MENU_TEXT, f'YOU DIED TO {last_enemy.upper()}, BUT', "Times New Roman", 48, (255, 255, 255), (540, 300-75))
+                                create_text("heroes never die", DEAD_MENU_TEXT, f'THEY SAY THAT HEROES NEVER DIE...', "Times New Roman", 48, (255, 255, 255), (540, 350-75))
+                                create_text("try again", DEAD_MENU_TEXT, f'Try again?', "Times New Roman", 48, (255, 0, 0), (540, 450-75))
+                                create_text("yes", DEAD_MENU_TEXT, '[Yes]', "Times New Roman", 48, (255, 255, 255), (540-48*2, 550-75))
+                                create_text("no", DEAD_MENU_TEXT, '[No]', "Times New Roman", 48, (255, 255, 255), (540+48*2, 550-75))
+                        
+                            if in_battle == False:
                                     
-                                # Damage calculations
-                                player_damage = player['damage'] * player['weapon_multiplier']
-                                enemy_hp -= player_damage
+                                # Reset the menu images and text
+                                FIGHT_MENU_IMAGES = {}
+                                FIGHT_MENU_TEXT = {}
 
-                                print(f"\nYou did {player_damage} damage!")
+                                # Render the enemy sprite
+                                create_image(enemy_name, FIGHT_MENU_IMAGES, enemy_sprite, (540, 360), transparent=True, scaling=enemy_sprite_size)
+
+                                # Create temporary variables for the battle
+                                player_hp = player["health"]
+
+                                enemy_hp = TEMP_ENEMIES[enemy_name]["hp"]
+                                enemy_dmg = TEMP_ENEMIES[enemy_name]["dmg"]
+                                print(enemy_dmg)
+
+                                # Render the enemy health and player health, defense, attack stats
+                                create_text("enemy health", FIGHT_MENU_TEXT, f"{enemy_name.upper()} APPROACHES", "Times New Roman", 64, (255, 0, 0), (540, 50))
+
+                                create_image("player health", FIGHT_MENU_IMAGES, "Images/heart.png", (805, 680), transparent=True, scaling=[75,75])
+                                create_text("player health", FIGHT_MENU_TEXT, f"Health: {player_hp}", "Times New Roman", 48, (0, 0, 0), (950, 675))
+
+                                create_text("player defense", FIGHT_MENU_TEXT, f"Defense: {player['defence']}", "Times New Roman", 48, (0, 0, 0), (540, 675))
+                                
+                                create_text("player damage", FIGHT_MENU_TEXT, f"Damage: {player['damage'] * player['weapon_multiplier']}", "Times New Roman", 48, (0, 0, 0), (150, 675))
+                                    
+                                # Begin the Battle Loop
+                                in_battle = True
+                                enemy_cooldown = 0
                                 print(f"Enemy Health: {enemy_hp}")
-                                print(f"Your Health: {player_hp}")
+                                
+                            else:
 
-                                # Wins the battle when the enemy health is 0
-                                if enemy_hp <= 0:
+                                # Increment the cooldown with respect
+                                # to the frame rate of the game
+                                enemy_cooldown += last_frame
 
-                                    # Enemy Dies
-                                    if round(enemy_hp) <= 0:
+                                # If the cooldown has reached <arbitrary value>, 
+                                # deal damage to the player
+                                if enemy_cooldown > 2 * last_frame: 
+                                    enemy_cooldown = 0
+                                    player_hp = round(player_hp - (enemy_dmg * (1 - player["defence"]/10)), 2)
+                                    
+                                    # Boss Functionalities
+                                    if in_boss_battle == True:
                                         
-                                        # Reset the Victory and Loss menus
-                                        VICTORY_MENU_TEXT = {}
-                                        VICTORY_MENU_IMAGES = {}
+                                        # Allows the enemy to teleport across the map 
+                                        # while it deals damage
+                                        new_coordinates = (randint(500, 580), randint(300, 420) * BOSS_MOVEMENT_FACTOR)
+                                    
+                                        # Re-render the image
+                                        create_image(enemy_name, FIGHT_MENU_IMAGES, enemy_sprite, new_coordinates, transparent=True, scaling=enemy_sprite_size)
 
-                                        print("VICTORY")
-                                        enemy_hp = 0
-                                                
-                                        create_text("slain", VICTORY_MENU_TEXT, f'YOU HAVE SLAIN {enemy_name.upper()}', "Times New Roman", 60, (0, 0, 0), (540, 150))
-                                        create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 250))
-
-                                        SCREEN_STATUS = "VICTORY"
-
-                                        # End the battle process
-                                        in_battle = False
-                                        wave += 1
-                                        last_enemy = enemy_name
+                                # Check if the enemy has been clicked
+                                if check_button_coords(mouse_pos, FIGHT_MENU_IMAGES[enemy_name]) == True:
                                         
-                                        # End the boss battle, if applicable
-                                        if in_boss_battle == True:
-                                            create_text("dialogue 1", VICTORY_MENU_TEXT, "But wait...", "Times New Roman", 48, (0, 0, 0), (540, 225))
-                                            create_text("dialogue 2", VICTORY_MENU_TEXT, "...The boss drops an ingredient...", "Times New Roman", 48, (0, 0, 0), (540, 290))
-                                            create_image("ingredient", VICTORY_MENU_IMAGES, ingredient, (540, 460), transparent=True, scaling=[300,300])
-                                            create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 650))
-                                            if wave == 6:  
-                                                player['egg'] = ingredient
-                                            elif wave == 11:
-                                                player['butter'] = ingredient
-                                            elif wave == 16:
-                                                player['flour'] = ingredient
-                                            elif wave == 21:
-                                                player['sugar'] = ingredient
-                                            in_boss_battle = False
+                                    # Damage calculations
+                                    player_damage = player['damage'] * player['weapon_multiplier']
+                                    enemy_hp -= player_damage
+
+                                    print(f"\nYou did {player_damage} damage!")
+                                    print(f"Enemy Health: {enemy_hp}")
+                                    print(f"Your Health: {player_hp}")
+
+                                    # Wins the battle when the enemy health is 0
+                                    if enemy_hp <= 0:
+
+                                        # Enemy Dies
+                                        if round(enemy_hp) <= 0:
+                                            
+                                            # Reset the Victory and Loss menus
+                                            VICTORY_MENU_TEXT = {}
+                                            VICTORY_MENU_IMAGES = {}
+
+                                            print("VICTORY")
+                                            enemy_hp = 0
+                                                    
+                                            create_text("slain", VICTORY_MENU_TEXT, f'YOU HAVE SLAIN {enemy_name.upper()}', "Times New Roman", 60, (0, 0, 0), (540, 150))
+                                            create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 250))
+
+                                            SCREEN_STATUS = "VICTORY"
+
+                                            # End the battle process
+                                            player['gold'] += 1
+                                            in_battle = False
+                                            wave += 1
+                                            last_enemy = enemy_name
+                                            
+                                            # End the boss battle, if applicable
+                                            if in_boss_battle == True:
+                                                create_text("dialogue 1", VICTORY_MENU_TEXT, "But wait...", "Times New Roman", 48, (0, 0, 0), (540, 225))
+                                                create_text("dialogue 2", VICTORY_MENU_TEXT, "...The boss drops an ingredient...", "Times New Roman", 48, (0, 0, 0), (540, 290))
+                                                create_image("ingredient", VICTORY_MENU_IMAGES, ingredient, (540, 460), transparent=True, scaling=[300,300])
+                                                create_text("continue", VICTORY_MENU_TEXT, f'>> Click Here to Continue <<', "Times New Roman", 48, (255, 0, 0), (540, 650))
+                                                if wave == 6:  
+                                                    player['egg'] = ingredient
+                                                elif wave == 11:
+                                                    player['butter'] = ingredient
+                                                elif wave == 16:
+                                                    player['flour'] = ingredient
+                                                    
+                                                    # Secret Colonel Questline + Ending
+                                                    if player['seasoned'] == True:
+                                                        create_text("dialogue1", VICTORY_MENU_TEXT, 'He noticed that you have', "Times New Roman", 24, (255, 0, 0), (200, 400-50))
+                                                        create_text("dialogue2", VICTORY_MENU_TEXT, 'his 11 herbs and spices...', "Times New Roman", 24, (255, 0, 0), (200, 425-50))
+                                                        create_text("dialogue3", VICTORY_MENU_TEXT, 'The Colonel hands you...', "Times New Roman", 24, (255, 0, 0), (200, 450-50))
+                                                        create_text("dialogue4", VICTORY_MENU_TEXT, 'a bucket of chicken!', "Times New Roman", 24, (255, 0, 0), (200, 475-50))
+                                                        create_image("chicken bucket", VICTORY_MENU_IMAGES, "Images/chicken-bucket.png", (200,600-80), transparent=True, scaling=[200,200])                   
+                                                        player['chicken'] = True
+
+                                                elif wave == 21:
+                                                    player['sugar'] = ingredient
+                                                in_boss_battle = False
 
 
-                            # Update the enemy and player health text
-                            # Floor and round each value to avoid floating point errors
-                            create_text("player health", FIGHT_MENU_TEXT, f"Health: {round(player_hp)}", "Times New Roman", 48, (0, 0, 0), (950, 675))
-                            create_text("enemy health", FIGHT_MENU_TEXT, f"Health: {round(enemy_hp)}", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                                # Update the enemy and player health text
+                                # Floor and round each value to avoid floating point errors
+                                create_text("player health", FIGHT_MENU_TEXT, f"Health: {round(player_hp)}", "Times New Roman", 48, (0, 0, 0), (950, 675))
+                                create_text("enemy health", FIGHT_MENU_TEXT, f"Health: {round(enemy_hp)}", "Times New Roman", 64, (255, 0, 0), (540, 50))
 
+                elif wave > 20:
+                    SCREEN_STATUS = "ENDING"
 
-                elif SCREEN_STATUS == "VICTORY":
+                if SCREEN_STATUS == "VICTORY":
                     
                     # If you are on the victory screen,
                     # allow the continue button to switch to
@@ -1061,21 +1092,33 @@ def main():
                         wave = 0
 
                         player = {
-                        "health": 10, 
-                        "damage": 1, 
-                        "defence": 0, 
-                        "gold": 10, 
+                            "health": 10, 
+                            "damage": 1, 
+                            "defence": 0, 
+                            "gold": 100, 
+                            
+                            # The spoon has a damage of 1
+                            "weapon": "Spoon",
 
-                        # The spoon has a damage of 1
-                        "weapon": "Spoon",
+                            # weapon multiplier = 1 + (weapon_damage - 1)/4
+                            "weapon_multiplier": 1,
+                            
+                            "weapon_image": "Images/spoon.png",
+                            'seasoned': False, 
+                            "chicken": False,
+                            "sprite": "Images/chef-character.png",
 
-                        # weapon multiplier = 1 + (weapon_damage - 1)/4
-                        "weapon_multiplier": 1,
-
-                        'seasoned': False, 
-                        "chicken": False,
-                        "sprite": "Images/chef-character.png"
+                            'egg': "Images/mystery.png",
+                            'butter': "Images/mystery.png",
+                            'flour': "Images/mystery.png",
+                            'sugar': "Images/mystery.png"
                         }
+
+
+                        enemy_name = "Dummy"
+                        enemy_sprite = "Images/training_dummy.png"
+                        enemy_sprite_size = [400, 400] 
+                        create_enemy(enemy_name, 10, 1)
                     
                     # Close the game
                     if check_button_coords(mouse_pos, DEAD_MENU_TEXT["no"]):
@@ -1108,7 +1151,75 @@ def main():
                             player["weapon_multiplier"] = 1 + (weapons[shop_choice]["damage"] - 1)/4
                             weapons[shop_choice]["cost"] = "SOLD :("
                             create_text("buy_note", SHOP_MENU_TEXT, "You successfully bought: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
-      
+
+                elif SCREEN_STATUS == "ENDING":
+
+                    if screen_count == 1:
+                        GAME_ENDING_IMAGES = {}
+                        GAME_ENDING_TEXT = {}
+                        create_text("enemy health", GAME_ENDING_TEXT, "You collected all four ingredients!!", "Times New Roman", 64, (255, 0, 0), (540, 550))
+                        create_text("dialogue 1", GAME_ENDING_TEXT, "Bake to impress Mr. Banjevic!", "Times New Roman", 48, (255, 0, 0), (440+100, 625))
+                        create_text("continue", GAME_ENDING_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 50))
+
+                        create_image("egg", GAME_ENDING_IMAGES, "Images/egg.png", (400, 200), transparent=True, scaling=[250,250])
+                        create_image("butter", GAME_ENDING_IMAGES, "Images/butter.png", (680, 200), transparent=True, scaling=[250,250])
+                        create_image("flour", GAME_ENDING_IMAGES, "Images/flour.png", (400, 415), transparent=True, scaling=[250,250])
+                        create_image("sugar", GAME_ENDING_IMAGES, "Images/sugar.png", (680, 415), transparent=True, scaling=[250,250])
+                        
+                        if check_button_coords(mouse_pos, GAME_ENDING_TEXT["continue"]) == True:
+                            screen_count += 1
+
+                    if screen_count == 2:
+                        GAME_ENDING_IMAGES = {}
+                        GAME_ENDING_TEXT = {}
+                        create_text("enemy health", GAME_ENDING_TEXT, "You baked this cake!", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                        if player['chicken'] == False:
+                            create_image("cake", GAME_ENDING_IMAGES, "Images/cake.png", (540, 360), transparent=True, scaling=[400,400])    
+                            create_text("dialogue 1", GAME_ENDING_TEXT, "Proceed to give it to Mr. Banjevic!", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
+                            create_text("continue", GAME_ENDING_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 625))
+                            if check_button_coords(mouse_pos, GAME_ENDING_TEXT["continue"]) == True:
+                                screen_count += 1
+
+                        elif player['chicken'] == True:
+                            create_text("dialogue 1", GAME_ENDING_TEXT, "You were gonna give Mr. Banjevic the cake but...", "Times New Roman", 48, (255, 0, 0), (440+100, 120))
+                            create_text("dialogue 2", GAME_ENDING_TEXT, "You remembered that you also had the Colonel's chicken.", "Times New Roman", 36, (255, 0, 0), (440+100, 170))
+                            create_text("dialogue 3", GAME_ENDING_TEXT, "Which one do you choose?", "Times New Roman", 36, (255, 0, 0), (440+100, 220))
+                            
+                            create_image("cake", GAME_ENDING_IMAGES, "Images/cake.png", (300, 500), transparent=True, scaling=[400,400])  
+                            create_image("chicken-bucket", GAME_ENDING_IMAGES, "Images/chicken-bucket.png", (780, 500), transparent=True, scaling=[400,400])  
+                            if check_button_coords(mouse_pos, GAME_ENDING_IMAGES["cake"]) == True:
+                                screen_count += 1
+                            if check_button_coords(mouse_pos, GAME_ENDING_IMAGES["chicken-bucket"]) == True:
+                                screen_count += 2
+
+
+
+
+                    if screen_count == 3:
+                        GAME_ENDING_IMAGES = {}
+                        GAME_ENDING_TEXT = {}
+                        create_text("ending name", GAME_ENDING_TEXT, "--- CAKE ENDING ---", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                        create_text("dialogue 1", GAME_ENDING_TEXT, "Mr. Banjevic gives the cake a... ", "Times New Roman", 48, (255, 0, 0), (440+100, 120))
+                        create_text("dialogue 2", GAME_ENDING_TEXT, "9/10!", "Times New Roman", 80, (255, 0, 0), (440+100, 200))
+                        create_image("cake", GAME_ENDING_IMAGES, "Images/cake.png", (540, 430), transparent=True, scaling=[400,400])    
+
+                    if screen_count == 4:
+                        GAME_ENDING_IMAGES = {}
+                        GAME_ENDING_TEXT = {}
+                        create_text("ending name", GAME_ENDING_TEXT, "--- COLONEL'S CHICKEN ENDING ---", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                        create_text("dialogue 1", GAME_ENDING_TEXT, "Mr. Banjevic gives the Colonel's Chicken a... ", "Times New Roman", 48, (255, 0, 0), (440+100, 120))
+                        create_text("dialogue 2", GAME_ENDING_TEXT, "10/10!", "Times New Roman", 80, (255, 0, 0), (440+100, 200))
+                        create_image("chicken-bucket", GAME_ENDING_IMAGES, "Images/chicken-bucket.png", (540, 430), transparent=True, scaling=[400,400])   
+
+
+
+                            
+
+                    
+                            
+
+                    
+                        
 
 
             # Updating main menu info (player stats)
@@ -1160,6 +1271,8 @@ def main():
             WIN.fill((255, 255, 255))
         if SCREEN_STATUS == "DEATH":
             WIN.fill((0, 0, 0))
+        if SCREEN_STATUS == "ENDING":
+            WIN.fill((255,215,0))
 
         # Render all text and images
         for text in TEXT:
