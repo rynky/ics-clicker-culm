@@ -87,7 +87,7 @@ player = {
     "health": 10, 
     "damage": 1, 
     "defence": 0, 
-    "gold": 100, 
+    "gold": 0, 
     
     # The spoon has a damage of 1
     "weapon": "Spoon",
@@ -1087,7 +1087,11 @@ def main():
                                             SCREEN_STATUS = "VICTORY"
 
                                             # End the battle process
-                                            player['gold'] += 1
+                                            if in_boss_battle == True:
+                                                player['gold'] += randint(3, 5)
+                                            else:
+                                                player['gold'] += 1
+                                            
                                             in_battle = False
                                             wave += 1
                                             last_enemy = enemy_name
@@ -1144,13 +1148,20 @@ def main():
                     # Restart the game 
                     if check_button_coords(mouse_pos, DEAD_MENU_TEXT["yes"]):
                         SCREEN_STATUS = "MAIN"
-                        wave = 0
+                        in_battle = False
+                        in_boss_battle = False
+                        TEMP_ENEMIES = {}
+                        
+                        create_enemy("Reset", 10, 1)
+                        last_enemy = "Reset"
+                        
+                        wave = 1
 
                         player = {
                             "health": 10, 
                             "damage": 1, 
                             "defence": 0, 
-                            "gold": 100, 
+                            "gold": 0, 
                             
                             # The spoon has a damage of 1
                             "weapon": "Spoon",
@@ -1168,12 +1179,6 @@ def main():
                             'flour': "Images/mystery.png",
                             'sugar': "Images/mystery.png"
                         }
-
-
-                        enemy_name = "Dummy"
-                        enemy_sprite = "Images/training_dummy.png"
-                        enemy_sprite_size = [400, 400] 
-                        create_enemy(enemy_name, 10, 1)
                     
                     # Close the game
                     if check_button_coords(mouse_pos, DEAD_MENU_TEXT["no"]):
