@@ -420,8 +420,7 @@ def main():
                 ["damage", "Images/sword.png", (100, 600), [200,200]],
             ])
         
-    # Important flags and accumulators
-    clicks = 0
+    # Important flag
     running = True
 
 
@@ -493,6 +492,10 @@ def main():
                 if SCREEN_STATUS == "EVENT":
                     
                     if in_event == False:
+                        
+                        # Creates variables to keep track of the screen the player is on,
+                        # What ending they got, what event they got, if they are in an event,
+                        # And if they have gotten a stat change yet
                         first_screen = True
                         second_screen = False
                         ending_screen = False
@@ -581,9 +584,14 @@ def main():
                                 elif ending == 3:
                                     create_text("dialogue 1", EVENT_MENU_TEXT, "Alright, I'll see ya next time.", "Times New Roman", 48, (255, 0, 0), (250+100, 360-100))      
                                     create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (250+100, 100))                             
-                                    
+
+                        # Food Market Event            
                         if event_number == 2:
+
+                            # If player hasn't chosen an option yet
                             if ending_screen == False:
+
+                                # Loads all options
                                 create_text("enemy health", EVENT_MENU_TEXT, "FOOD MARKET", "Times New Roman", 64, (255, 0, 0), (540, 50))
                                 create_text("dialogue 1", EVENT_MENU_TEXT, "You can buy one item for free...", "Times New Roman", 40, (255, 0, 0), (540, 150))
                                 create_image("chicken", EVENT_MENU_IMAGES, "Images/chicken.png", (200, 360), transparent=True, scaling=[200, 200])
@@ -591,6 +599,8 @@ def main():
                                 create_image("rice", EVENT_MENU_IMAGES, "Images/rice.png", (600, 360), transparent=True, scaling=[200, 200])
                                 create_image("chili", EVENT_MENU_IMAGES, "Images/chili.png", (800, 360), transparent=True, scaling=[200, 200])
                                 create_text("leave", EVENT_MENU_TEXT, "Leave", "Times New Roman", 64, (0,0,0), (500, 500))
+
+                                # Chooses an ending depending on what the player clicked
                                 if check_button_coords(mouse_pos, EVENT_MENU_IMAGES["chicken"]) == True:  
                                     ending = 1
                                     ending_screen = True
@@ -607,9 +617,13 @@ def main():
                                     ending = 5
                                     ending_screen = True
                                 
+                            # If player has chosen an option 
                             if ending_screen == True:
                                 EVENT_MENU_TEXT = {}
                                 EVENT_MENU_IMAGES = {}
+
+                                # Displays a screen for each option
+                                # Updates stats once
                                 if ending == 1:
                                     create_text("dialogue 1", EVENT_MENU_TEXT, "You consume the chicken...", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))
                                     create_text("dialogue 2", EVENT_MENU_TEXT, "Why would you choose the unhealthiest item?", "Times New Roman", 36, (255, 0, 0), (440+100, 408-100))
@@ -646,14 +660,20 @@ def main():
                                     create_text("dialogue 1", EVENT_MENU_TEXT, "You leave the market.", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))      
                                     create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))                           
                             
-                                
+                        # Spices Event
                         if event_number == 3:
+
+                            # If player hasn't chosen an option
                             if ending_screen == False:
+
+                                # Load first screen
                                 create_text("enemy health", EVENT_MENU_TEXT, "You find a stash of 11 herbs and spices...", "Times New Roman", 48, (255, 0, 0), (540, 50))
                                 create_text("dialogue 1", EVENT_MENU_TEXT, "Do you consume the spices or keep them?", "Times New Roman", 48, (255, 0, 0), (540, 600)) 
                                 create_image("spices", EVENT_MENU_IMAGES, "Images/spices-herbs.png", (540, 300), transparent=True, scaling=[450,450])
                                 create_text("yes", EVENT_MENU_TEXT, "[yes]", "Times New Roman", 48, (255, 0, 0), (300, 650))   
-                                create_text("no", EVENT_MENU_TEXT, "[no]", "Times New Roman", 48, (255, 0, 0), (780, 650))                          
+                                create_text("no", EVENT_MENU_TEXT, "[no]", "Times New Roman", 48, (255, 0, 0), (780, 650))  
+
+                                # Check if player chose an option                        
                                 if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
                                     ending = 1
                                     ending_screen = True
@@ -661,9 +681,13 @@ def main():
                                     ending = 2
                                     ending_screen = True
                                     
+                            # If player has chosen an option 
                             if ending_screen == True:
                                 EVENT_MENU_TEXT = {}
                                 EVENT_MENU_IMAGES = {}
+
+                                # Loads a screen for each option
+                                # Changes stats once
                                 if ending == 1:
                                     create_text("dialogue 1", EVENT_MENU_TEXT, "You straight up consume", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))
                                     create_text("dialogue 2", EVENT_MENU_TEXT, "all of the spices...", "Times New Roman", 36, (255, 0, 0), (440+100, 408-100))
@@ -680,8 +704,13 @@ def main():
                                     create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))     
                                     player['seasoned'] = True          
                                     
+                        # Covered Plates Event
                         if event_number == 4:
+
+                            # If player has not chosen an option yet
                             if first_screen == True:
+
+                                # Loads first screen
                                 create_text("enemy health", EVENT_MENU_TEXT, "You find a covered plate...", "Times New Roman", 64, (255, 0, 0), (540, 50))
                                 create_text("dialogue 1", EVENT_MENU_TEXT, "Do you want to", "Times New Roman", 48, (255, 0, 0), (440+100, 500))
                                 create_text("dialogue 2", EVENT_MENU_TEXT, "take what's inside or get a new plate?", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
@@ -690,6 +719,7 @@ def main():
                                 create_text("no", EVENT_MENU_TEXT, "[no]", "Times New Roman", 48, (255, 0, 0), (680, 650))    
                                 create_image("plate_1", EVENT_MENU_IMAGES, "Images/covered-dish.png", (540, 275), transparent=True, scaling=[600,600])      
 
+                                # Checks for player choice
                                 if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
                                     ending = 1
                                     first_screen = False
@@ -697,10 +727,14 @@ def main():
                                 elif check_button_coords(mouse_pos, EVENT_MENU_TEXT["no"]) == True:
                                     first_screen = False
                                     second_screen = True
-                                    
+                            
+                            # If player has chosen an option
+                            # that goes to a second screen 
                             if second_screen == True:
                                 EVENT_MENU_IMAGES = {}
                                 EVENT_MENU_TEXT = {}
+
+                                # Loads the screen
                                 create_text("enemy health", EVENT_MENU_TEXT, "You swap plates...", "Times New Roman", 64, (255, 0, 0), (540, 50))
                                 create_image("plate_2", EVENT_MENU_IMAGES, "Images/covered-dish-2.png", (540, 275), transparent=True, scaling=[600, 600])
                                 create_text("dialogue 1", EVENT_MENU_TEXT, "Do you want to", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
@@ -708,6 +742,7 @@ def main():
                                 create_text("yes", EVENT_MENU_TEXT, "[yes]", "Times New Roman", 48, (255, 0, 0), (250, 650))   
                                 create_text("no", EVENT_MENU_TEXT, "[no]", "Times New Roman", 48, (255, 0, 0), (830, 650))    
 
+                                # Checks for the player's choice
                                 if check_button_coords(mouse_pos, EVENT_MENU_TEXT["yes"]) == True:
                                     ending = 2
                                     ending_screen = True
@@ -716,10 +751,13 @@ def main():
                                     ending = 3
                                     ending_screen = True
                                     second_screen = False
-                                
+
+                            # If the player has finished the event
                             if ending_screen == True:
                                 EVENT_MENU_IMAGES = {}
                                 EVENT_MENU_TEXT = {}
+
+                                # There is a different screen and stat change for each event
                                 if ending == 1:
                                     create_text("dialogue 1", EVENT_MENU_TEXT, "There was a...", "Times New Roman", 48, (255, 0, 0), (440+100, 500))
                                     create_text("dialogue 2", EVENT_MENU_TEXT, "knife sharpener inside!", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
@@ -740,6 +778,10 @@ def main():
                                     create_text("dialogue 1", EVENT_MENU_TEXT, "You just leave.", "Times New Roman", 48, (255, 0, 0), (440+100, 600))
                                     create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 60, (255, 0, 0), (440+100, 300))  
 
+                        # Tries to check if the player clicks on a continue button
+                        # This would send them back to the main menu and add one to the wave count
+                        # If they have not reached a continue button in an event yet,
+                        # Nothing happens
                         try:
                             if check_button_coords(mouse_pos, EVENT_MENU_TEXT["continue"]) == True:
                                 in_event = False
