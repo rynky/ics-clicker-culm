@@ -305,10 +305,16 @@ def shop_menu(items: list):
 
 
 def create_enemy(name: str, health: int, damage: int):
+    """
+    Creates an entry in the global dictionary <TEMP_ENEMIES>
+    """
     TEMP_ENEMIES[name] = {"hp": health, "dmg": damage}
 
 
 def tutorial_stage():
+    """
+    Instantiates the enemy for the tutorial stage.
+    """
 
     global FIGHT_MENU_TEXT, FIGHT_MENU_IMAGES, TEMP_ENEMIES
     global player, wave
@@ -351,7 +357,10 @@ def generate_enemy(last_enemy: dict) -> dict:
 
 def random_event():
     """
-    A function that creates random interactive events.
+    A function that generates a random number 1-4, 
+    with each number representing interactive events that may occur
+    during the playthrough of the game.
+    Additionally, sets the <SCREEN_STATUS> to "EVENT".
     """
     global completed_events, wave, SCREEN_STATUS
     
@@ -370,14 +379,19 @@ def random_event():
 
 def main():
 
+    # Access all required globals
     global SCREEN_STATUS, wave, weapons, player, in_boss_battle, FIGHT_MENU_TEXT
     global TEMP_ENEMIES, in_battle, in_event, BOSS_MOVEMENT_FACTOR, completed_events
     global clock, last_frame, last_enemy, enemy_cooldown
 
+    # Clear the event menu, and wait until the event wave occurs to add entries
     EVENT_MENU_TEXT = {}
     EVENT_MENU_IMAGES = {}
     
+    # Set the sprite of the unfound ingredients
     ingredient = "Images/mystery.png"
+    
+    # Create the weapons to be shown in the shop
     weapons = {
         "Chopsticks": {"cost": 3, "damage": 2},
         "Spatula": {"cost": 4, "damage": 3},
@@ -415,6 +429,8 @@ def main():
     while running:
 
         # User Interfaces
+        # As represented by their respective
+        # image and text dictionaries
         if SCREEN_STATUS == "TUTORIAL":
             TEXT = TUTORIAL_MENU_TEXT
             IMAGES = TUTORIAL_MENU_IMAGES
@@ -595,7 +611,7 @@ def main():
                                 EVENT_MENU_TEXT = {}
                                 EVENT_MENU_IMAGES = {}
                                 if ending == 1:
-                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You consume the chicken...", 48, (255, 0, 0), (440+100, 360-100))
+                                    create_text("dialogue 1", EVENT_MENU_TEXT, "You consume the chicken...", "Times New Roman", 48, (255, 0, 0), (440+100, 360-100))
                                     create_text("dialogue 2", EVENT_MENU_TEXT, "Why would you choose the unhealthiest item?", "Times New Roman", 36, (255, 0, 0), (440+100, 408-100))
                                     create_text("dialogue 3", EVENT_MENU_TEXT, "-2 Health", "Times New Roman", 48, (255, 0, 0), (440+100, 456-100))
                                     create_text("continue", EVENT_MENU_TEXT, ">>> Click here to continue <<<", "Times New Roman", 48, (255, 0, 0), (440+100, 100))
@@ -747,6 +763,7 @@ def main():
 
                 if SCREEN_STATUS == "TITLE":
                     
+                    # Generates the opening screen text
                     if check_button_coords(mouse_pos, TITLE_MENU_TEXT["start"]):
                         SCREEN_STATUS = "TUTORIAL" 
                         create_text("1", TUTORIAL_MENU_TEXT, "You are a Chef for the Banjevic Aristocracy.", "Times New Roman", 36, (0, 0, 0), (540, 50))
@@ -758,20 +775,25 @@ def main():
                         create_image("7", TUTORIAL_MENU_IMAGES, "Images/good-luck.png", (900, 600), transparent=True, scaling=[200,200]) 
 
                     
+                    # Exits the game (...but why?)
                     if check_button_coords(mouse_pos, TITLE_MENU_TEXT["quit"]):
                         running = False
 
                 
                 if SCREEN_STATUS == "TUTORIAL":
                     
+                    # Begin the tutorial wave
                     if check_button_coords(mouse_pos, TUTORIAL_MENU_TEXT["6"]):
                         wave = 0
                         SCREEN_STATUS = "FIGHT"
 
 
                 if SCREEN_STATUS == "UPGRADE":
+                    
+                    # Stores what upgrade will be made
                     upgrade_choice = None
-
+                    
+                    # Upgrade menu interactives
                     if check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["upgrade_back"]) == True:
                         SCREEN_STATUS = "MAIN"
                     elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["health_button"]) == True:
@@ -781,6 +803,7 @@ def main():
                     elif check_button_coords(mouse_pos, UPGRADE_MENU_IMAGES["damage_button"]) == True:
                         upgrade_choice = "damage"
 
+                    # Handles upgrading stats and displaying the response
                     if upgrade_choice in player.keys():
                         if player["gold"] >= STATS_INFO[upgrade_choice]["cost"]:
                             if upgrade_choice == "defence":
@@ -799,7 +822,7 @@ def main():
                             create_text("upgrade_note", UPGRADE_MENU_TEXT, "You don't have enough gold!", "Times New Roman", 48, (0, 0, 0), (540, 150))                           
 
 
-                # Function for each menu
+                # The home scren
                 if SCREEN_STATUS == "MAIN":
                     if check_button_coords(mouse_pos, MAIN_MENU_TEXT["fight"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["fight"]) == True:
                         SCREEN_STATUS = "FIGHT"
@@ -808,15 +831,18 @@ def main():
                     elif check_button_coords(mouse_pos, MAIN_MENU_TEXT["upgrade"]) == True or check_button_coords(mouse_pos, MAIN_MENU_IMAGES["upgrade"]) == True:
                         SCREEN_STATUS = "UPGRADE"
 
+                # Represents all 20 waves of the game
                 if wave <= 20:
                     if SCREEN_STATUS == "FIGHT":
 
+                        # Tutorial Stage
                         if wave == 0:
                             enemy_name = "Dummy"
                             enemy_sprite = "Images/training_dummy.png"
                             enemy_sprite_size = [400, 400] 
                             create_enemy(enemy_name, 10, 1)
                         
+                        # Boss Stages
                         elif wave % 5 == 0:
 
                             if wave == 5:
@@ -851,6 +877,7 @@ def main():
                                 create_enemy(enemy_name, 300, 5)
                                 in_boss_battle = True
 
+                        # Random event stages
                         elif wave % 10 == 3 or wave % 10 == 8:
 
                             # Switch to event screen
@@ -1027,8 +1054,10 @@ def main():
                                 create_text("player health", FIGHT_MENU_TEXT, f"Health: {round(player_hp)}", "Times New Roman", 48, (0, 0, 0), (950, 675))
                                 create_text("enemy health", FIGHT_MENU_TEXT, f"Health: {ceil(enemy_hp)}", "Times New Roman", 64, (255, 0, 0), (540, 50))
 
+                # Ends the game after wave 20, if the player is still alive
                 elif wave > 20 and SCREEN_STATUS != "DEATH":
                     SCREEN_STATUS = "ENDING"
+
 
                 if SCREEN_STATUS == "VICTORY":
                     
@@ -1054,8 +1083,10 @@ def main():
                         create_enemy("Reset", 10, 1)
                         last_enemy = "Reset"
                         
+                        # Start at wave 1 rather than the tutorial
                         wave = 1
 
+                        # Reset the player inventory and stats
                         player = {
                             "health": 10, 
                             "damage": 1, 
@@ -1079,6 +1110,7 @@ def main():
                             'sugar': "Images/mystery.png"
                         }
                         
+                        # Reset the weapon shop
                         weapons = {
                             "Chopsticks": {"cost": 3, "damage": 2},
                             "Spatula": {"cost": 4, "damage": 3},
@@ -1092,10 +1124,15 @@ def main():
 
 
                 elif SCREEN_STATUS == "SHOP":
+                    
+                    # Choice of weapon to buy
                     shop_choice = None
+                    
+                    # Shop menu interactives
                     if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["shop_back"]) == True:
                         SCREEN_STATUS = "MAIN"
 
+                    # Weapons available to buy
                     if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["cs"]) == True:
                         shop_choice = "Chopsticks"
                     if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["sp"]) == True:
@@ -1105,12 +1142,15 @@ def main():
                     if check_button_coords(mouse_pos, SHOP_MENU_IMAGES["fp"]) == True:
                         shop_choice = "Frying Pan"
 
+                    # Handles buying weapons
                     if shop_choice in weapons.keys():
                         if weapons[shop_choice]["cost"] == "SOLD :(":
                             create_text("buy_note", SHOP_MENU_TEXT, "You already bought: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
                         elif player['gold'] < weapons[shop_choice]["cost"]:
                             create_text("buy_note", SHOP_MENU_TEXT, "You cannot afford to buy: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
                         else:    
+                            
+                            # Edits your inventory accordingly
                             player["weapon"] = shop_choice
                             player['weapon_image'] = "Images/" + shop_choice.lower() + ".png"
                             player['gold'] -= weapons[shop_choice]["cost"]
@@ -1118,6 +1158,8 @@ def main():
                             weapons[shop_choice]["cost"] = "SOLD :("
                             create_text("buy_note", SHOP_MENU_TEXT, "You successfully bought: " + shop_choice, "Times New Roman", 36, (0, 0, 0), (540, 75))
 
+
+                # Handles the regular ending and secret ending 
                 elif SCREEN_STATUS == "ENDING":
 
                     if screen_count == 1:
@@ -1139,6 +1181,8 @@ def main():
                         GAME_ENDING_IMAGES = {}
                         GAME_ENDING_TEXT = {}
                         create_text("enemy health", GAME_ENDING_TEXT, "You baked this cake!", "Times New Roman", 64, (255, 0, 0), (540, 50))
+                        
+                        # Check if the player has the chicken or not...
                         if player['chicken'] == False:
                             create_image("cake", GAME_ENDING_IMAGES, "Images/cake.png", (540, 360), transparent=True, scaling=[400,400])    
                             create_text("dialogue 1", GAME_ENDING_TEXT, "Proceed to give it to Mr. Banjevic!", "Times New Roman", 48, (255, 0, 0), (440+100, 550))
@@ -1158,6 +1202,7 @@ def main():
                             if check_button_coords(mouse_pos, GAME_ENDING_IMAGES["chicken-bucket"]) == True:
                                 screen_count += 2
 
+                    # Cake ending
                     if screen_count == 3:
                         GAME_ENDING_IMAGES = {}
                         GAME_ENDING_TEXT = {}
@@ -1166,6 +1211,7 @@ def main():
                         create_text("dialogue 2", GAME_ENDING_TEXT, "9/10!", "Times New Roman", 80, (255, 0, 0), (440+100, 200))
                         create_image("cake", GAME_ENDING_IMAGES, "Images/cake.png", (540, 430), transparent=True, scaling=[400,400])    
 
+                    # Colonel's Chicken ending
                     if screen_count == 4:
                         GAME_ENDING_IMAGES = {}
                         GAME_ENDING_TEXT = {}
@@ -1234,6 +1280,9 @@ def main():
         for image in IMAGES:
             WIN.blit(IMAGES[image][0], IMAGES[image][1])
         
+        # Update display
         display.update()
 
+# Runs the program
+# Enjoy :)
 main()
