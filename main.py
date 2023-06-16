@@ -1078,6 +1078,13 @@ def main():
                             'flour': "Images/mystery.png",
                             'sugar': "Images/mystery.png"
                         }
+                        
+                        weapons = {
+                            "Chopsticks": {"cost": 3, "damage": 2},
+                            "Spatula": {"cost": 4, "damage": 3},
+                            "Knife": {"cost": 6, "damage": 4},
+                            "Frying Pan": {"cost": 8, "damage": 5}
+                            }
                     
                     # Close the game
                     if check_button_coords(mouse_pos, DEAD_MENU_TEXT["no"]):
