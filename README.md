@@ -40,6 +40,4 @@
 - **Art & Assets:** Custom Pixel Art
 
 ## Credits
-- **Game Design, Programming, and Art:** Raiyan
-- **Special Thanks:** Raymond
-- **Music & Sound:** None
+- **Game Design, Programming, and Art:** Raiyan Khan and Raymond Zhou
